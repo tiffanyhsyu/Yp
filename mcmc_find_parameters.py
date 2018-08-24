@@ -14,8 +14,7 @@ flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/test_outpu
 # Names of wavelenghts of interest
 # y_names = ['H12', 'H11', 'H10', 'H9', 'H8+NeIII', 'HeI3890', 'Heps+HeI3970', 'Hd', 'Hg', 'HeI4472', \
 #      'Hb', 'HeI4923', 'HeI5027', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI7283']
-y_names = ['HeI3890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI4923', 'HeI5027', 'HeI5877', 'Ha', 'HeI6679',
-           'HeI7067', 'HeI7283']
+y_names = ['HeI3890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI4923', 'HeI5027', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI7283']
 
 # Balmer and Helium lines
 # balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3971.195, 3869.81, 3836.472, 3798.976, 3771.701, 3751.217])
@@ -118,7 +117,7 @@ def lnprob(theta, x, y, yerr):
 
 
 # Set up sampler
-ndim, nwalkers = 8, 100
+ndim, nwalkers = 8, 1000
 
 pos = [np.array([np.random.uniform(min_y_plus, max_y_plus),
                  np.random.uniform(min_temp, max_temp),
@@ -131,9 +130,8 @@ pos = [np.array([np.random.uniform(min_y_plus, max_y_plus),
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, y_error), threads=ndim)
 
 print('Running MCMC...')
-nmbr = 100
+nmbr = 500
 a = time.time()
-print('Started at', a)
 for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
     if True:  # (i+1) % 100 == 0:
         print("{0:5.1%}".format(float(i) / nmbr))
@@ -141,22 +139,22 @@ print('Done!')
 print((time.time() - a) / 60.0, 'mins')
 
 print('Saving samples')
-np.save("{0:s}_samples{1:d}.npy".format('test_MCMC', nmbr), sampler.chain)
+np.save('{0:s}_{1:d}_walkers{2:d}_steps'.format('test_MCMC_run', nwalkers, nmbr), sampler.chain)
 
 print('Making plots')
-burnin = 0.1 * nmbr
+burnin = int(0.1 * nmbr)
 
 samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
 # Names of 8 parameters and input 'true' parameter values
 prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{He}$', '$a_{H}$', '$\\tau_{He}', '$n_{HI}$']
-input_vals = np.array([0.08, 18000, 100, 0.1, 1.0, 1.0, 1.0, 1e-2])
+input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, 1e-2])
 
 print ('Best parameter values:')
 y_plus_mcmc, temp_mcmc, dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, n_HI_mcmc = map(
     lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 print ('y+', y_plus_mcmc)
 print ('T', temp_mcmc)
-print ('n_e', dens_mcmc)
+print ('log(n_e)', dens_mcmc)
 print ('c(Hb)', c_Hb_mcmc)
 print ('a_H', a_H_mcmc)
 print ('a_He', a_He_mcmc)
@@ -172,7 +170,7 @@ for i in range(ndim):
     axes[i].set_ylabel(prenams[i])
 axes[7].set_xlabel('Steps')
 fig.tight_layout(h_pad=0.0)
-fig.savefig("{0:s}_samples{1:d}.pdf".format('test_MCMC_time_evol', nmbr), overwrite=True)
+fig.savefig('{0:s}_{1:d}_walkers{2:d}_steps.pdf'.format('test_MCMC_time_evol', nwalkers, nmbr), overwrite=True)
 
 fig = corner.corner(samples, labels=prenams, truths=input_vals)
-fig.savefig('{0:s}_samples{1:d}.pdf'.format('test_MCMC_params', nmbr), overwrite=True)
+fig.savefig('{0:s}_{1:d}_walkers{2:d}_steps.pdf'.format('test_MCMC_params', nwalkers, nmbr), overwrite=True)
