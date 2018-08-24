@@ -2,6 +2,7 @@
 # Radiative Transfer Effects in He I Emission Lines
 # http://adsabs.harvard.edu/abs/2002ApJ...569..288B
 # Table 4: Limited Range Fitting Formulae For Helium Abundance Including Optical Depth Effects
+Wave	A	B0	B1	a	b0	b1	b2	Max Error (%)
 3889	0.904	-0.173	-5.4e-4	-1.06e-1	5.14e-5	-4.20e-7	1.97e-10	0.8
 4026	4.297	0.090	-6.3e-6	1.43e-3	4.05e-4	3.63e-8	0	0.2
 4387	16.255	0.109	-3.7e-6	0	0	0	0	0.2
