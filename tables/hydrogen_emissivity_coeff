@@ -1,0 +1,14 @@
+# Aver, Olive, and Skillman 2010, JCAP 05, 003
+# A new approach to systematic uncertainties and self-consistency in helium abundance determinations
+# https://arxiv.org/abs/1001.5218
+# Table 1: Coefficients for the hydrogen emissivities, c_ij.
+Ha	Hg	Hd
+2.87	0.468	0.259
+-0.000813	7.58e-6	2.09e-9
+-2.05E-5	2.19e-6	2.56e-6
+-0.510	0.0281	0.0207
+0.00443	-0.000101	-1.94e-6
+3.15e-5	-4.76e-6	-6.51e-6
+0.345	-0.0106	-0.00770
+-0.00969	0.000128	-4.58e-5
+5.69e-5	2.51e-6	3.48e-6
