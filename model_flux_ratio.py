@@ -7,12 +7,12 @@ from astropy.table import Table
 
 # Load in tables we'll need
 path = os.getcwd()
-hydrogen_emis_coeff = Table.read(path+'/tables/AOS_2010_hydrogen_emissivities', format='ascii', delimiter='\t')
-helium_emis = Table.read(path+'/tables/porter_2013_helium_emissivities.dat', format='ascii', delimiter='\t')
-helium_emis_coeff = Table.read(path+'/tables/PFM_2007_emissivities', format='ascii', delimiter='\t')
-helium_optical_depth = Table.read(path+'/tables/benjamin_1999_optical_depths', format='ascii', delimiter='\t')
-hydrogen_CR_coeff = Table.read(path+'/tables/aver_2010_hydrogen_CR_coeff', format='ascii', delimiter='\t')
-helium_CR_coeff = Table.read(path+'/tables/PFM_2007_helium_CR_coeff', format='ascii', delimiter='\t')
+hydrogen_emis_coeff = Table.read(path+'/tables/hydrogen_emissivity', format='ascii', delimiter='\t')
+helium_emis = Table.read(path+'/tables/helium_emissivity', format='ascii', delimiter='\t')
+helium_emis_coeff = Table.read(path+'/tables/helium_emissivity_coeff', format='ascii', delimiter='\t')
+helium_optical_depth = Table.read(path+'/tables/helium_optical_depth', format='ascii', delimiter='\t')
+hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii', delimiter='\t')
+helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
 # Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd #, Heps, H8, H9, H10, H11, H12
 balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891])  # , 3971.195, 3869.81, 3836.472, 3798.976, 3771.701, 3751.217])
