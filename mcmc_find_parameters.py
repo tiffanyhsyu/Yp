@@ -33,7 +33,7 @@ x = np.zeros(y.size)
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
 min_temp, max_temp = 5000, 25000  # electron temperature (K)
-min_dens, max_dens = 0, 14  # log10(electron density) (cm^-3)
+min_log_dens, max_log_dens = 0, 14  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
 min_a_He, max_a_He = 0, 4  # underlying stellar HeI absorption (Angstroms)
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
@@ -90,7 +90,7 @@ def lnprior(theta):
 
     if min_y_plus <= y_plus <= max_y_plus and \
             min_temp <= temp <= max_temp and \
-            min_dens <= dens <= max_dens and \
+            min_log_dens <= log_dens <= max_log_dens and \
             min_c_Hb <= c_Hb <= max_c_Hb and \
             min_a_He <= a_He <= max_a_He and \
             min_a_H <= a_H <= max_a_H and \
@@ -122,7 +122,7 @@ ndim, nwalkers = 8, 100
 
 pos = [np.array([np.random.uniform(min_y_plus, max_y_plus),
                  np.random.uniform(min_temp, max_temp),
-                 np.random.uniform(min_dens, max_dens),
+                 np.random.uniform(min_log_dens, max_log_dens),
                  np.random.uniform(min_c_Hb, max_c_Hb),
                  np.random.uniform(min_a_He, max_a_He),
                  np.random.uniform(min_a_H, max_a_H),
@@ -148,7 +148,7 @@ burnin = 0.1 * nmbr
 
 samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
 # Names of 8 parameters and input 'true' parameter values
-prenams = ['y+', 'temperature', '$n_{e}$', 'c(H\\beta)', '$a_{He}$', '$a_{H}$', '$\\tau_{He}', '$n_{HI}$']
+prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{He}$', '$a_{H}$', '$\\tau_{He}', '$n_{HI}$']
 input_vals = np.array([0.08, 18000, 100, 0.1, 1.0, 1.0, 1.0, 1e-2])
 
 print ('Best parameter values:')
