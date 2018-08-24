@@ -7,7 +7,7 @@ from astropy.table import Table
 
 # Load in tables we'll need
 path = os.getcwd()
-hydrogen_emis_coeff = Table.read(path+'/tables/hydrogen_emissivity', format='ascii', delimiter='\t')
+hydrogen_emis_coeff = Table.read(path+'/tables/hydrogen_emissivity_coeff', format='ascii', delimiter='\t')
 helium_emis = Table.read(path+'/tables/helium_emissivity', format='ascii', delimiter='\t')
 helium_emis_coeff = Table.read(path+'/tables/helium_emissivity_coeff', format='ascii', delimiter='\t')
 helium_optical_depth = Table.read(path+'/tables/helium_optical_depth', format='ascii', delimiter='\t')
@@ -403,5 +403,5 @@ def helium_collision_to_recomb(wave, temp, dens):
 # Reddening
 ###########
 # Seaton 1979 extinction curve + interpolation over it
-f_lambda_avg = Table.read(/tables/average_extinction_curve', format='ascii', delimiter=' ')
+f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
