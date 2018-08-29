@@ -279,8 +279,8 @@ def optical_depth_function(wave, temp, dens, tau):
     #    else:
     #        print ('Optical depth function for HeI', helium_optical_depth['Wave'][idx][0])
 
-    # HeI7065 requires a different functional form; given in BSS 2002 Section 3.2, paragraph 4 (before Eq 5)
-    elif idx == 9:
+    # HeI7067 requires a different functional form; given in BSS 2002 Section 3.2, paragraph 4 (before Eq 5)
+    elif idx == 9: # idx 9 here corresponds to the row in tables/helium_optial_depth that HeI7067 is in
         f_tau = 1 + ((tau / 2) * (0.359 + ((-3.46e-2 - (1.84e-4 * dens) + 3.039e-7 * dens ** 2) * T4)))
 
     else:
