@@ -14,16 +14,21 @@ helium_optical_depth = Table.read(path+'/tables/helium_optical_depth', format='a
 hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii', delimiter='\t')
 helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
-# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd #, Heps, H8, H9, H10, H11, H12
-balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891])  # , 3971.195, 3869.81, 3836.472, 3798.976, 3771.701, 3751.217])
+# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, Heps, H8, H9, H10, H11, H12
+#balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3971.195, 3890.166, 3836.472, 3798.976, 3771.701, 3751.217])
+# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC
+balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
 
-# Vacuum wavelengths of Helium lines
-helium_lines = np.array([7283.356, 7067.198, 6679.994, 5877.299, 5017.079, 4923.304, 4472.755, 4027.328, 3890.151])
+# Vacuum wavelengths of Helium lines for MCMC
+#helium_lines = np.array([7283.356, 7067.198, 6679.994, 5877.299, 5017.079, 4923.304, 4472.755, 4027.328, 3890.151])
+helium_lines = np.array([7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 
+##############
+# Emissivity #
+##############
 
-###########
-# Emissivity
-###########
+# Hydrogen
+# --------
 def hydrogen_emissivity(wave, temp, dens):
     '''
     Calculate the emissivity of a Balmer line
@@ -56,10 +61,14 @@ def hydrogen_emissivity(wave, temp, dens):
         line = str('Hg')
     elif idx == 3:
         line = str('Hd')
+    elif idx == 4:
+        line = str('H8')
     # print ('Emissivity for', line)
 
     if line == 'Hb':
         Xt = 1.
+    elif line == 'H8':
+        Xt = 0.10
     else:
         cij = np.array(hydrogen_emis_coeff[line]).reshape((3, 3))
         Xt = 0.
@@ -74,6 +83,8 @@ def hydrogen_emissivity(wave, temp, dens):
     return Xt
 
 
+# Helium
+# ------
 # Interpolated He emissivities
 HeI_emis_3889 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_4026 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=2)
@@ -141,11 +152,11 @@ def helium_emissivity(wave, temp, dens, ratio=True):
     return HeI_emis / Hbeta_emis
 
 
-#############################
-# EWs + Underlying Absorption
-#############################
+###############################
+# EWs + Underlying Absorption #
+###############################
 # Linear fit to normalizations to Hb from Equation 5.1 of AOS 2010, excluding downward trend of Ha
-fit_balmer_factor = np.polyfit(balmer_lines[1:4], np.array([1.00, 0.959, 0.896]), deg=1)
+fit_balmer_factor = np.polyfit(np.array([4862.721, 4341.684, 4102.891]), np.array([1.00, 0.959, 0.896]), deg=1) # Fit to Hb, Hg, Hd
 a_HI_balmer_fit = (fit_balmer_factor[0] * balmer_lines) + fit_balmer_factor[1]
 
 # Linear fit to normalizations to HeI4472 from Equation 5.2 of AOS 2010
@@ -194,6 +205,8 @@ def stellar_absorption(wave, a_default, ion=None):
             a_at_wave = 0.959 * a_default
         elif H_idx == 3:
             a_at_wave = 0.896 * a_default
+        elif H_idx == 4:
+            a_at_wave = a_HI_balmer_fit[4]*a_default
 
     # Underlying HeI stellar absorption
     elif ion in ['helium', 'Helium', 'He']:
@@ -201,31 +214,25 @@ def stellar_absorption(wave, a_default, ion=None):
         He_idx = np.abs(wave - helium_lines).argmin()
 
         # Multiply underlying stellar absorption by normalization
-        if He_idx == 0:  # HeI7283
-            a_at_wave = a_He_fit[0] * a_default
-
-        elif He_idx == 1:  # HeI7067
+        if He_idx == 0:  # HeI7067
             a_at_wave = 0.400 * a_default
 
-        elif He_idx == 2:  # HeI6679
+        elif He_idx == 1:  # HeI6679
             a_at_wave = 0.525 * a_default
 
-        elif He_idx == 3:  # HeI5877
+        elif He_idx == 2:  # HeI5877
             a_at_wave = 0.874 * a_default
 
-        elif He_idx == 4:  # HeI5017
-            a_at_wave = a_He_fit[4] * a_default
+        elif He_idx == 3:  # HeI5017
+            a_at_wave = a_He_fit[3] * a_default
 
-        elif He_idx == 5:  # HeI4923
-            a_at_wave = a_He_fit[5] * a_default
-
-        elif He_idx == 6:  # HeI4472
+        elif He_idx == 4:  # HeI4472
             a_at_wave = a_default
 
-        elif He_idx == 7:  # HeI4027
+        elif He_idx == 5:  # HeI4027
             a_at_wave = 1.347 * a_default
 
-        elif He_idx == 8:  # HeI3890
+        elif He_idx == 6:  # HeI3890
             a_at_wave = 1.400 * a_default
     else:
         print ('Please supply ion of interest, either hydrogen or helium')
@@ -233,9 +240,9 @@ def stellar_absorption(wave, a_default, ion=None):
     return a_at_wave
 
 
-#######################
-# Optical Depth Function
-#######################
+##########################
+# Optical Depth Function #
+##########################
 def optical_depth_function(wave, temp, dens, tau):
     '''
     Determine the wavelength-dependent
@@ -287,9 +294,12 @@ def optical_depth_function(wave, temp, dens, tau):
     return f_tau
 
 
-#############################
-# Collisional to Recombination
-#############################
+################################
+# Collisional to Recombination #
+################################
+
+# Hydrogen
+# --------
 def hydrogen_collision_to_recomb(eta, wave, temp):
     '''
     Calculate the factor that corrects the
@@ -342,7 +352,7 @@ def hydrogen_collision_to_recomb(eta, wave, temp):
     Keff_alphaeff = 0.
     for i in range(1, 9):
         a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
-        Keff_alphaeff += (a * np.exp(-b / T4) * (T4 ** c))
+        Keff_alphaeff += (a * np.exp(b / T4) * (T4 ** c))
     #    print (Keff_alphaeff)
 
     # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
@@ -350,7 +360,8 @@ def hydrogen_collision_to_recomb(eta, wave, temp):
 
     return hydrogen_CR
 
-
+# Helium
+# ------
 def helium_collision_to_recomb(wave, temp, dens):
     '''
     Calculate the factor that corrects the
@@ -399,9 +410,13 @@ def helium_collision_to_recomb(wave, temp, dens):
     return helium_CR
 
 
-###########
-# Reddening
-###########
+#############
+# Reddening #
+#############
 # Seaton 1979 extinction curve + interpolation over it
 f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
+
+
+
+
