@@ -2,7 +2,6 @@ import numpy as np
 import os
 import scipy.interpolate as interp
 from astropy.table import Table
-import pdb
 
 # Flux Ratio = Emissivity Ratio * EW+absorption Ratio * Optical Depth * Collisional to Recombination Ratio * Reddening
 
