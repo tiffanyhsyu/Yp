@@ -1,6 +1,7 @@
 import corner
 import emcee
 import time
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import model_flux_ratio as mfr
@@ -9,7 +10,8 @@ from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
-flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/test_output_flux', format='ascii', delimiter=' ')
+flux_ratios = Table.read(os.getcwd()+'test_output_flux', format='ascii', delimiter=' ')
+#flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/test_output_flux', format='ascii', delimiter=' ')
 #flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/LeoP', format='ascii', delimiter=' ')
 
 # Names of wavelenghts of interest for MCMC
