@@ -10,7 +10,7 @@ from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
-flux_ratios = Table.read(os.getcwd()+'test_output_flux', format='ascii', delimiter=' ')
+flux_ratios = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
 #flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/test_output_flux', format='ascii', delimiter=' ')
 #flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/LeoP', format='ascii', delimiter=' ')
 
@@ -34,19 +34,19 @@ x = np.zeros(y.size)
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
 min_temp, max_temp = 5000, 25000  # electron temperature (K)
-min_log_dens, max_log_dens = 0, 14  # log10(electron density) (cm^-3)
+min_log_dens, max_log_dens = 0, 3  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
-min_a_He, max_a_He = 0, 4  # underlying stellar HeI absorption (Angstroms)
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
+min_a_He, max_a_He = 0, 4  # underlying stellar HeI absorption (Angstroms)
 min_tau_He, max_tau_He = 0, 5  # optical depth; range of values from Izotov & Thuan 2010
 min_n_HI, max_n_HI = 1e-4, 1e-1  # neutral hydrogen density (cm^-3)
 
 
 # Set up MCMC
 def get_model(theta):
-    y_plus, temp, log_dens, c_Hb, a_He, a_H, tau_He, n_HI = theta
+    y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, n_HI = theta
 
-    model_flux = []
+    model_flux = np.zeros(11) # 11 emission line fluxes we want to model
     dens = 10 ** log_dens
     eta = n_HI / dens
 
@@ -115,21 +115,21 @@ def get_model(theta):
                     ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
                     10**-(reddening_function * c_Hb)
 
-        model_flux.append(flux)
+        model_flux[w] = flux
 
     return model_flux
 
 
 # Define the probability function as likelihood * prior.
 def lnprior(theta):
-    y_plus, temp, log_dens, c_Hb, a_He, a_H, tau_He, n_HI = theta
+    y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, n_HI = theta
 
     if min_y_plus <= y_plus <= max_y_plus and \
             min_temp <= temp <= max_temp and \
             min_log_dens <= log_dens <= max_log_dens and \
             min_c_Hb <= c_Hb <= max_c_Hb and \
-            min_a_He <= a_He <= max_a_He and \
             min_a_H <= a_H <= max_a_H and \
+            min_a_He <= a_He <= max_a_He and \
             min_tau_He <= tau_He <= max_tau_He and \
             min_n_HI <= n_HI <= max_n_HI:
         return 0.0
@@ -160,14 +160,14 @@ pos = [np.array([np.random.uniform(min_y_plus, max_y_plus),
                  np.random.uniform(min_temp, max_temp),
                  np.random.uniform(min_log_dens, max_log_dens),
                  np.random.uniform(min_c_Hb, max_c_Hb),
-                 np.random.uniform(min_a_He, max_a_He),
                  np.random.uniform(min_a_H, max_a_H),
+                 np.random.uniform(min_a_He, max_a_He),
                  np.random.uniform(min_tau_He, max_tau_He),
                  np.random.uniform(min_n_HI, max_n_HI)]) for i in range(nwalkers)]
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, y_error), threads=ndim)
 
 print('Running MCMC...')
-nmbr = 1000
+nmbr = 500
 a = time.time()
 for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
     if True:  # (i+1) % 100 == 0:
@@ -204,7 +204,7 @@ fig, axes = plt.subplots(ndim, 1, sharex=True, figsize=(8, 12))
 for i in range(ndim):
     axes[i].plot(sampler.chain[:, :, i].T, color="k", alpha=0.4)
     axes[i].yaxis.set_major_locator(MaxNLocator(5))
-    axes[i].axvline(10, color='red')
+    axes[i].axvline(burnin, color='red')
     axes[i].set_ylabel(prenams[i])
 axes[7].set_xlabel('Steps')
 fig.tight_layout(h_pad=0.0)
