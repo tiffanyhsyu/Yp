@@ -7,6 +7,7 @@ from astropy.table import Table
 
 # Load in tables we'll need
 path = os.getcwd()
+
 hydrogen_emis_coeff = Table.read(path+'/tables/hydrogen_emissivity_coeff', format='ascii', delimiter='\t')
 helium_emis = Table.read(path+'/tables/helium_emissivity', format='ascii', delimiter='\t')
 helium_emis_coeff = Table.read(path+'/tables/helium_emissivity_coeff', format='ascii', delimiter='\t')
@@ -63,7 +64,6 @@ def hydrogen_emissivity(wave, temp, dens):
         line = str('Hd')
     elif idx == 4:
         line = str('H8')
-    # print ('Emissivity for', line)
 
     if line == 'Hb':
         Xt = 1.
@@ -74,7 +74,7 @@ def hydrogen_emissivity(wave, temp, dens):
         Xt = 0.
 
         for i in range(cij.shape[0]):
-            for j in range(cij.shape[0]):
+            for j in range(cij.shape[1]):
                 # Balmer emissivity; from Equation in Section 3.1 Hydrogen emission of AOS 2010 Citaion (3)
                 Xt += cij[i][j] * (np.log10(T4) ** i) * (np.log10(dens) ** j)
 
@@ -89,12 +89,12 @@ def hydrogen_emissivity(wave, temp, dens):
 HeI_emis_3889 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_4026 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_4471 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=1, ky=2)
-HeI_emis_4922 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4922A'].reshape((14, 21)), kx=1, ky=2)
+#HeI_emis_4922 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4922A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_5016 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5016A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_5876 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5876A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_6678 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=1, ky=2)
 HeI_emis_7065 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=1, ky=2)
-HeI_emis_7281 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7281A'].reshape((14, 21)), kx=1, ky=2)
+#HeI_emis_7281 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7281A'].reshape((14, 21)), kx=1, ky=2)
 
 
 def helium_emissivity(wave, temp, dens, ratio=True):
@@ -110,7 +110,7 @@ def helium_emissivity(wave, temp, dens, ratio=True):
     temp : float
         Temperature of the gas (in Kelvin)
     dens : float
-        Density of the gas (cm^-3)
+        Density of the gas (cm^-3), not in log!
     ratio : True/False (optional)
         If False, returns the HeI emissivity value
 
@@ -120,8 +120,9 @@ def helium_emissivity(wave, temp, dens, ratio=True):
         The E(HeI)/E(H(beta)) ratio (default).
         Units of emissivity are in ergs*cm^3*s^-1
     '''
-    # Helium lines in format of column names
-    HeI_lines = np.array([3889, 4026, 4471, 4922, 5016, 5876, 6678, 7065, 7281])
+    # Helium lines, in format of column names
+    #HeI_lines = np.array([3889, 4026, 4471, 4922, 5016, 5876, 6678, 7065, 7281])
+    HeI_lines = np.array([3889, 4026, 4471, 5016, 5876, 6678, 7065])
 
     # Find column in Porter's 2013 emissivities corresponding to HeI wavelength of interest
     HeI_line = str(HeI_lines[np.where(np.abs(HeI_lines - wave) < 3)[0]][0])
@@ -132,8 +133,8 @@ def helium_emissivity(wave, temp, dens, ratio=True):
         HeI_emis = 10 ** HeI_emis_4026(dens, temp)[0][0]
     elif HeI_line == '4471':
         HeI_emis = 10 ** HeI_emis_4471(dens, temp)[0][0]
-    elif HeI_line == '4922':
-        HeI_emis = 10 ** HeI_emis_4922(dens, temp)[0][0]
+    #elif HeI_line == '4922':
+    #    HeI_emis = 10 ** HeI_emis_4922(dens, temp)[0][0]
     elif HeI_line == '5016':
         HeI_emis = 10 ** HeI_emis_5016(dens, temp)[0][0]
     elif HeI_line == '5876':
@@ -142,12 +143,12 @@ def helium_emissivity(wave, temp, dens, ratio=True):
         HeI_emis = 10 ** HeI_emis_6678(dens, temp)[0][0]
     elif HeI_line == '7065':
         HeI_emis = 10 ** HeI_emis_7065(dens, temp)[0][0]
-    elif HeI_line == '7281':
-        HeI_emis = 10 ** HeI_emis_7281(dens, temp)[0][0]
+    #elif HeI_line == '7281':
+    #    HeI_emis = 10 ** HeI_emis_7281(dens, temp)[0][0]
 
     # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
     Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
-                 * (1. / temp) * 1e-25
+                 * (1 / temp) * 1e-25
 
     return HeI_emis / Hbeta_emis
 
@@ -180,7 +181,7 @@ def stellar_absorption(wave, a_default, ion=None):
         wavelength for hydrogen is at Hb and
         at HeI4472 for helium
     ion : str
-        Ion of interest, hydrogen or helium.
+        Ion of interest, hydrogen or helium
         Accepted formats:
         hydrogen, Hydrogen, H
         helium, Helium, He
@@ -191,27 +192,27 @@ def stellar_absorption(wave, a_default, ion=None):
         Amount of stellar absorption at
         the input wavelength
     '''
-
+    # Normalizations for stellar absorption given in Equations 5.1, 5.2 of AOS 2010
     # Underlying HI stellar absorption
     if ion in ['hydrogen', 'Hydrogen', 'H']:
         # Match to closest Balmer line
         H_idx = np.where(np.abs(balmer_lines - wave) < 3)[0]
 
-        if H_idx == 0:
+        if H_idx == 0: # Ha
             a_at_wave = 0.942 * a_default
-        elif H_idx == 1:
+        elif H_idx == 1: # Hb
             a_at_wave = a_default
-        elif H_idx == 2:
+        elif H_idx == 2: # Hg
             a_at_wave = 0.959 * a_default
-        elif H_idx == 3:
+        elif H_idx == 3: # Hd
             a_at_wave = 0.896 * a_default
-        elif H_idx == 4:
+        elif H_idx == 4: # H8
             a_at_wave = a_HI_balmer_fit[4]*a_default
 
     # Underlying HeI stellar absorption
     elif ion in ['helium', 'Helium', 'He']:
         # Match to closest Helium line
-        He_idx = np.abs(wave - helium_lines).argmin()
+        He_idx = np.where(np.abs(helium_lines - wave) < 3)[0]
 
         # Multiply underlying stellar absorption by normalization
         if He_idx == 0:  # HeI7067
@@ -271,17 +272,16 @@ def optical_depth_function(wave, temp, dens, tau):
     # Match wavelength to relevant column in optical depth table
     idx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3)[0]
 
+    # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
     if len(idx) == 0:
         if np.abs(5017.079 - wave) < 3:
             f_tau = 1
         else:
             print ('No expression for optical depth at this wavelength')
-    #    else:
-    #        print ('Optical depth function for HeI', helium_optical_depth['Wave'][idx][0])
 
-    # HeI7067 requires a different functional form; given in BSS 2002 Section 3.2, paragraph 4 (before Eq 5)
-    elif idx == 9: # idx 9 here corresponds to the row in tables/helium_optial_depth that HeI7067 is in
-        f_tau = 1 + ((tau / 2) * (0.359 + ((-3.46e-2 - (1.84e-4 * dens) + 3.039e-7 * dens ** 2) * T4)))
+    # HeI7067 requires a different functional form, given in BSS 2002 Section 3.2, paragraph 4 (before Eq 5)
+    elif idx == 9: # 9th index corresponds to the row in Table helium_optial_depth that HeI7067 is in
+        f_tau = 1 + ((tau/2) * (0.359 + ((-3.46e-2 - (1.84e-4 * dens) + (3.039e-7 * dens ** 2)) * T4)))
 
     else:
         a = helium_optical_depth['a'][idx][0]
@@ -289,7 +289,7 @@ def optical_depth_function(wave, temp, dens, tau):
         b1 = helium_optical_depth['b1'][idx][0]
         b2 = helium_optical_depth['b2'][idx][0]
 
-        f_tau = 1 + ((tau / 2) * (a + ((b0 + (b1 * dens) + (b2 * dens ** 2)) * T4)))
+        f_tau = 1 + ((tau/2) * (a + ((b0 + (b1 * dens) + (b2 * dens ** 2)) * T4)))
 
     return f_tau
 
@@ -350,7 +350,7 @@ def hydrogen_collision_to_recomb(eta, wave, temp):
     # Calculate the total K_eff/alpha_eff for relevant energy levels -- collisional sum includes an infinite
     # number of levels, but probabilities fall off quickly. This sum excludes terms contributing < 1%
     Keff_alphaeff = 0.
-    for i in range(1, 9):
+    for i in range(1, 9): # 1-9 here is to grab the 'Term1', 'Term2', etc. column names
         a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
         Keff_alphaeff += (a * np.exp(b / T4) * (T4 ** c))
     #    print (Keff_alphaeff)
@@ -405,7 +405,7 @@ def helium_collision_to_recomb(wave, temp, dens):
         helium_CR_coeff['ai'][idx] * (T4 ** helium_CR_coeff['bi'][idx]) * np.exp(helium_CR_coeff['ci'][idx] / T4))
 
     # Amount of collisional to recombination emission; from Equation A2 of PFM 2007
-    helium_CR = (1 + (3552. * (T4 ** -0.55) / dens)) ** -1 * sum_upper_lev
+    helium_CR = ((1 + (3552. * (T4 ** -0.55) / dens))**-1) * sum_upper_lev
 
     return helium_CR
 
