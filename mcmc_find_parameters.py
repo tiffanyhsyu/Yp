@@ -11,8 +11,7 @@ from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
 flux_ratios = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
-#flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/test_output_flux', format='ascii', delimiter=' ')
-#flux_ratios = Table.read('/Users/thsyu/Dropbox/BCDs/primordial_helium/LeoP', format='ascii', delimiter=' ')
+#flux_ratios = Table.read(os.getcwd()+'/LeoP', format='ascii', delimiter=' ')
 
 # Names of wavelenghts of interest for MCMC
 y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067']
@@ -28,7 +27,7 @@ EWs = np.array(flux_ratios['EW'])
 EW_Hb = flux_ratios['EW'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]]
 
 y = np.array(flux_ratios['Flux Ratio'])
-y_error = np.array(flux_ratios['Flux Ratio'] * 0.02)
+y_error = np.array(flux_ratios['Flux Ratio'] * 0.0001)
 x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, n_HI
@@ -154,7 +153,7 @@ def lnprob(theta, x, y, yerr):
 
 
 # Set up sampler
-ndim, nwalkers = 8, 500
+ndim, nwalkers = 8, 100
 
 pos = [np.array([np.random.uniform(min_y_plus, max_y_plus),
                  np.random.uniform(min_temp, max_temp),
