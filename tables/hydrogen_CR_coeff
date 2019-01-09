@@ -1,0 +1,17 @@
+# Aver, Olive, Skillman 2010, JCAP, 05, 003
+# A new approach to systematic uncertainties and self-consistency in helium abundance determinations
+# http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1001.5218
+# or https://arxiv.org/abs/1001.5218
+Line	Coefficient	Term 1	Term 2	Term 3	Term 4	Term 5	Term 6	Term 7	Term 8
+Ha	a	0.4155	2.4965	2.4063	0.2914	0.3685	4.6426	0	0
+Ha	b	-14.80	-14.03	-14.03	-14.80	-14.80	-14.03	0	0
+Ha	c	0.4209	0.5853	0.6187	0.6766	0.7076	0.7788	0	0
+Hb	a	0.2384	0.6964	0.1991	0.1409	0.2201	1.9228	1.4845	2.8179
+Hb	b	-15.15	-14.80	-15.15	-15.15	-15.15	-14.80	-14.80	-14.80
+Hb	c	0.3082	0.4978	0.6017	0.6765	0.7293	0.7535	0.7845	0.9352
+Hg	a	0.3629	0.8351	2.0044	1.4757	2.7947	0	0	0
+Hg	b	-15.15	-15.15	-15.15	-15.15	-15.15	0	0	0
+Hg	c	0.3598	0.6533	0.7281	0.7809	0.8582	0	0	0
+Hd	a	0.3629	0.8351	2.0044	1.4757	2.7947	0	0	0
+Hd	b	-15.34	-15.34	-15.34	-15.34	-15.34	0	0	0
+Hd	c	0.3598	0.6533	0.7281	0.7809	0.8582	0	0	0

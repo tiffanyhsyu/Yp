@@ -1,0 +1,17 @@
+# Benjamin, Skillman, Smits 2002, ApJ, 569, 288B
+# Radiative Transfer Effects in He I Emission Lines
+# http://adsabs.harvard.edu/abs/2002ApJ...569..288B
+# Table 4: Limited Range Fitting Formulae For Helium Abundance Including Optical Depth Effects
+Wave	A	B0	B1	a	b0	b1	b2	Max Error (%)
+3889	0.904	-0.173	-5.4e-4	-1.06e-1	5.14e-5	-4.20e-7	1.97e-10	0.8
+4026	4.297	0.090	-6.3e-6	1.43e-3	4.05e-4	3.63e-8	0	0.2
+4387	16.255	0.109	-3.7e-6	0	0	0	0	0.2
+4471	2.010	0.127	-4.1e-4	2.74e-3	8.81e-4	-1.21e-6	0	1.0
+4686	0.0816	0.145	0	0	0	0	0	0.3
+4714	19.555	-0.461	-13.5e-4	5.77e-2	-7.12e-3	-3.10e-5	3.99e-8	1.9
+4922	7.523	0.150	-1.9e-4	0	0	0	0	0.6
+5876	0.735	0.230	-6.3e-4	4.70e-3	2.23e-3	-2.51e-6	0	1.2
+6678	2.580	0.249	-2.0e-4	0	0	0	0	0.3
+7065	See text	0	0	0	0	0	0	0
+7281	13.835	-0.307	-7.0e-4	0	0	0	0	2.0
+10830	See AOS2015	0	0	0	0	0	0	0
