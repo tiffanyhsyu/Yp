@@ -80,7 +80,7 @@ def get_model(theta):
 		if nearest_wave in balmer_lines and nearest_wave != 3890.166:
 			line_species = 'hydrogen'
 			
-			emissivity_ratio = mfr.hydrogen_emissivity(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.hydrogen_emissivity_old(emis_lines[w], temp, dens)
 			a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
 			collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp)
 			reddening_function = ( mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta ) - 1.            
@@ -127,7 +127,7 @@ def get_model(theta):
 			# H8 contribution:
 			line_species = 'hydrogen'
 
-			emissivity_ratio = mfr.hydrogen_emissivity(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.hydrogen_emissivity_old(emis_lines[w], temp, dens)
 			a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)            
 			collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
 			collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
