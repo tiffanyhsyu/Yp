@@ -1,4 +1,7 @@
+#extrap = np.polyfit(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'], deg=2) # extrapolate this curve to 11000 Angstroms
+#print(extrap[0]*11000**2 + test_extrap[1]*11000 + test_extrap[2]) # Find value at 11000 Angstroms for table ><!
 wavelength X(x)
+11000. 1.31
 10000. 1.36
 9090.90909091 1.44
 8333.33333333 1.84
