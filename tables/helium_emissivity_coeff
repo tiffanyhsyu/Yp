@@ -1,7 +1,5 @@
-# Porter, Ferland, MacAdam 2007 ApJ, 657, 327P
-# He I Emission in the Orion Nebula and Implications for Primordial Helium Abundance
-# http://adsabs.harvard.edu/abs/2007ApJ...657..327P
-# or http://iopscience.iop.org/article/10.1086/510880/fulltext/
+# Porter, Ferland, MacAdam 2007 ApJ, 657, 327P: He I Emission in the Orion Nebula and Implications for Primordial Helium Abundance
+# PFM2007: http://adsabs.harvard.edu/abs/2007ApJ...657..327P or http://iopscience.iop.org/article/10.1086/510880/fulltext/
 # Table 4: Parameters for Fits to He i Emissivities, 4*pi_jlambda=n_e*n_He+
 Wavelength	Upper Level	Lower Level	a	b	c	d
 2945	5p ^{3}P	2s ^{3}S	-1.1849E+05	-4.2559E+02	1.2913E+04	3.5306E+05
