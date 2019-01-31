@@ -1,11 +1,29 @@
-import numpy as np
+######
+# Yp #
+######
+# Code to model the flux ratio of an emission line, given 8 input parameters:
+## y+, helium abundance
+## T, temperature
+## n_e, density
+## c(Hb), reddening
+## a_H, hydrogen stellar absorption
+## a_He, helium stellar absorption
+## tau_He, optical depth
+## xi, ratio of neutral to ionized hydrogen densities
+# Flux Ratio = Emissivity Ratio * EW+absorption Ratio * Optical Depth * Collisional to Recombination Ratio * Reddening
+
+###########
+# Updates #
+###########
+# 2019-01-30: added P. Storey's 2018 hydrogen emissivities (S2018); uses RectBivariateSpline for a linear or cubic interpolation
+
+# Imports
 import os
 import pdb
+import numpy as np
 import scipy.interpolate as interp
 from functools import reduce
 from astropy.table import Table
-
-# Flux Ratio = Emissivity Ratio * EW+absorption Ratio * Optical Depth * Collisional to Recombination Ratio * Reddening
 
 # Load in tables we'll need
 path = os.getcwd()
@@ -18,8 +36,6 @@ helium_optical_depth = Table.read(path+'/tables/helium_optical_depth', format='a
 hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii', delimiter='\t')
 helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
-# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, Heps, H8, H9, H10, H11, H12
-#balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3971.195, 3890.166, 3836.472, 3798.976, 3771.701, 3751.217])
 # Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC
 balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
 
@@ -33,7 +49,6 @@ helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472
 
 # Hydrogen
 # --------
-
 ha_RBS = np.zeros((21,6))
 hb_RBS = np.zeros((21,6))
 hg_RBS = np.zeros((21,6))
@@ -204,7 +219,6 @@ HeI_emis_5876 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspa
 HeI_emis_6678 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=1, ky=1)
 HeI_emis_7065 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=1, ky=1)
 HeI_emis_10833 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=1, ky=1)
-
 
 def helium_emissivity(wave, temp, dens, ratio=True):
     '''
