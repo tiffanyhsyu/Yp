@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pdb
 import scipy.interpolate as interp
+from functools import reduce
 from astropy.table import Table
 
 # Flux Ratio = Emissivity Ratio * EW+absorption Ratio * Optical Depth * Collisional to Recombination Ratio * Reddening
@@ -41,26 +42,26 @@ h8_RBS = np.zeros((21,6))
 pg_RBS = np.zeros((21,6))
 
 for t in range(len(np.arange(5000, 26000, 1000))):
-    ha_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 3)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hb_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 4)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hg_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 5)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hd_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 6)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
-    h8_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 8)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pg_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 6)[0], \
-                                                          np.where(hydrogen_emis_S2018['Nl'] == 3)[0], \
-                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hd_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
 
-def hydrogen_emissivity_S2018(wave, temp, dens, interp='linear'):
+def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     '''
     Calculate the emissivity of a hydrogen line
     relative to H(beta) using P. Storey's 2018 
@@ -92,20 +93,20 @@ def hydrogen_emissivity_S2018(wave, temp, dens, interp='linear'):
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
     idx = np.where(np.abs(wave - balmer_lines) < 3.5)[0]
 
-    if interp == 'linear':
-        S2018_ha_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
-        S2018_hb_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
-        S2018_hg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
-        S2018_hd_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
-        S2018_h8_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
-        #S2018_pg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
-    elif interp == 'cubic':
-        S2018_ha_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
-        S2018_hb_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
-        S2018_hg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
-        S2018_hd_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
-        S2018_h8_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
-        #S2018_pg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+    if deg == 'linear':
+        S2018_ha_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
+        S2018_hb_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
+        S2018_hg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
+        S2018_hd_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
+        S2018_h8_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
+        #S2018_pg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+    elif deg == 'cubic':
+        S2018_ha_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
+        S2018_hb_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
+        S2018_hg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
+        S2018_hd_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
+        S2018_h8_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
+        #S2018_pg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
     else:
         print ('Not ready for this degree of interpolation!')
         pdb.set_trace()
