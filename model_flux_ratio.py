@@ -9,6 +9,7 @@ from astropy.table import Table
 # Load in tables we'll need
 path = os.getcwd()
 
+hydrogen_emis = Table.read(path+'/tables/hydrogen_emissivity_S2018', format='ascii', delimiter='\t')
 hydrogen_emis_coeff = Table.read(path+'/tables/hydrogen_emissivity_HS1987', format='ascii', delimiter='\t')
 helium_emis = Table.read(path+'/tables/helium_emissivity', format='ascii', delimiter='\t')
 helium_emis_coeff = Table.read(path+'/tables/helium_emissivity_coeff', format='ascii', delimiter='\t')
@@ -31,6 +32,104 @@ helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472
 
 # Hydrogen
 # --------
+
+ha_RBS = np.zeros((21,6))
+hb_RBS = np.zeros((21,6))
+hg_RBS = np.zeros((21,6))
+hd_RBS = np.zeros((21,6))
+h8_RBS = np.zeros((21,6))
+pg_RBS = np.zeros((21,6))
+
+for t in range(len(np.arange(5000, 26000, 1000))):
+    ha_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 3)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hb_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 4)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hg_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    hd_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    h8_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 8)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+    pg_RBS[t] = hydrogen_emis_S2018['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis_S2018['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis_S2018['Nl'] == 3)[0], \
+                                                          np.where(hydrogen_emis_S2018['T'] == np.arange(5000, 26000, 1000)[t])))]
+
+def hydrogen_emissivity_S2018(wave, temp, dens, interp='linear'):
+    '''
+    Calculate the emissivity of a hydrogen line
+    relative to H(beta) using P. Storey's 2018 
+    hydrogen emissivities.
+
+    These include the collisional to recombination
+    correction and are interpolated using a
+    RectBivariateSpline()
+
+    Parameters
+    ----------
+    wave : float
+        Wavelength of the Balmer line (in Angstroms)
+    temp : float
+        Temperature of the gas (in Kelvin)
+    dens : float
+        Density of the gas (in cm^-3)
+    interp : str
+        Degree of RBS interpolation; default is linear
+
+    Returns
+    -------
+    emissivity : float
+        The E(lambda)/E(H(beta)) ratio
+    '''
+    # Reformat the density
+    logdens = np.log10(dens)
+
+    # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
+    idx = np.where(np.abs(wave - balmer_lines) < 3.5)[0]
+
+    if interp == 'linear':
+        S2018_ha_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
+        S2018_hb_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
+        S2018_hg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
+        S2018_hd_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
+        S2018_h8_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
+        #S2018_pg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+    elif interp == 'cubic':
+        S2018_ha_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
+        S2018_hb_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
+        S2018_hg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
+        S2018_hd_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
+        S2018_h8_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
+        #S2018_pg_interp = RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+    else:
+        print ('Not ready for this degree of interpolation!')
+        pdb.set_trace()
+
+    # H-beta emissivity, for calculating the ratio of emissivities
+    Hbeta_emis = S2018_hb_interp(temp, logdens)[0][0]
+
+    if idx == 0: # H-alpha:
+        Xt = S2018_ha_interp(temp, logdens)[0][0] / Hbeta_emis
+    elif idx == 1: # H-beta:
+        Xt = 1.
+    elif idx == 2: # H-gamma
+        Xt = S2018_hg_interp(temp, logdens)[0][0] / Hbeta_emis
+    elif idx == 3: # H-delta
+        Xt = S2018_hd_interp(temp, logdens)[0][0] / Hbeta_emis
+    elif idx == 4: # H8
+        Xt = S2018_h8_interp(temp, logdens)[0][0] / Hbeta_emis
+    else:
+        print('Not ready for this hydrogen line!')
+        pdb.set_trace()
+
+    return Xt
+
+
 def hydrogen_emissivity_HS1987(wave, temp, dens):
     '''
     Calculate the emissivity of a Balmer line
