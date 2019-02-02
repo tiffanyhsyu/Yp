@@ -83,8 +83,9 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     hydrogen emissivities.
 
     These include the collisional to recombination
-    correction and are interpolated using a
-    RectBivariateSpline()
+    correction and are interpolated using a 
+    RectBivariateSpline() -- linear by default,
+    option of cubic
 
     Parameters
     ----------
@@ -94,7 +95,7 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
         Temperature of the gas (in Kelvin)
     dens : float
         Density of the gas (in cm^-3)
-    interp : str
+    deg : str
         Degree of RBS interpolation; default is linear
 
     Returns
@@ -211,19 +212,36 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 # Helium
 # ------
 # Interpolated Porter 2013 HeI emissivities
-HeI_emis_3889 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_4026 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_4471 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_5016 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5016A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_5876 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5876A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_6678 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_7065 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=1, ky=1)
-HeI_emis_10833 = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=1, ky=1)
+# Linear
+HeI_emis_3889_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_4026_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_4471_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_5016_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5016A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_5876_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5876A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_6678_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_7065_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=1, ky=1)
+HeI_emis_10833_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=1, ky=1)
+# Cubic
+HeI_emis_3889_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_4026_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_4471_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_5016_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5016A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_5876_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['5876A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_6678_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_7065_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=3, ky=3)
+HeI_emis_10833_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=3, ky=3)
 
-def helium_emissivity(wave, temp, dens, ratio=True):
+def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio=True):
     '''
     Calculate the emissivity of a HeI line
     using Porter et al.'s 2013 emissivities
+    (which are edits to the Porter, Ferland,
+    Storey, & Detisch 2012 paper MNRAS 425, L28)
+
+    These include the collisional to recombination
+    correction and are interpolated using a 
+    RectBivariateSpline() -- linear by default,
+    option of cubic
 
     Defaults to returning the emissivity as
     a ratio relative to H(beta) and does not
@@ -237,6 +255,8 @@ def helium_emissivity(wave, temp, dens, ratio=True):
         Temperature of the gas (in Kelvin)
     dens : float
         Density of the gas (cm^-3), not in log!
+    deg : str
+        Degree of RBS interpolation; default is linear
     ratio : True/False (optional)
         If False, returns the HeI emissivity value
 
@@ -252,22 +272,50 @@ def helium_emissivity(wave, temp, dens, ratio=True):
     # Find column in Porter's 2013 emissivities corresponding to HeI wavelength of interest
     HeI_line = str(HeI_lines[np.where(np.abs(HeI_lines - wave) < 3.5)[0]][0])
 
-    if HeI_line == '3889':
-        HeI_emis = 10 ** HeI_emis_3889(dens, temp)[0][0]
-    elif HeI_line == '4026':
-        HeI_emis = 10 ** HeI_emis_4026(dens, temp)[0][0]
-    elif HeI_line == '4471':
-        HeI_emis = 10 ** HeI_emis_4471(dens, temp)[0][0]
-    elif HeI_line == '5016':
-        HeI_emis = 10 ** HeI_emis_5016(dens, temp)[0][0]
-    elif HeI_line == '5876':
-        HeI_emis = 10 ** HeI_emis_5876(dens, temp)[0][0]
-    elif HeI_line == '6678':
-        HeI_emis = 10 ** HeI_emis_6678(dens, temp)[0][0]
-    elif HeI_line == '7065':
-        HeI_emis = 10 ** HeI_emis_7065(dens, temp)[0][0]
-    elif HeI_line == '10833':
-        HeI_emis = 10 ** HeI_emis_10833(dens, temp)[0][0]
+    if deg == 'linear':
+        if HeI_line == '3889':
+            HeI_emis = 10 ** HeI_emis_3889_lin(dens, temp)[0][0]
+        elif HeI_line == '4026':
+            HeI_emis = 10 ** HeI_emis_4026_lin(dens, temp)[0][0]
+        elif HeI_line == '4471':
+            HeI_emis = 10 ** HeI_emis_4471_lin(dens, temp)[0][0]
+        elif HeI_line == '5016':
+            HeI_emis = 10 ** HeI_emis_5016_lin(dens, temp)[0][0]
+        elif HeI_line == '5876':
+            HeI_emis = 10 ** HeI_emis_5876_lin(dens, temp)[0][0]
+        elif HeI_line == '6678':
+            HeI_emis = 10 ** HeI_emis_6678_lin(dens, temp)[0][0]
+        elif HeI_line == '7065':
+            HeI_emis = 10 ** HeI_emis_7065_lin(dens, temp)[0][0]
+        elif HeI_line == '10833':
+            HeI_emis = 10 ** HeI_emis_10833_lin(dens, temp)[0][0]
+        else:
+            print('Not ready for this helium line!')
+            pdb.set_trace()
+    elif deg == 'cubic':
+        if HeI_line == '3889':
+            HeI_emis = 10 ** HeI_emis_3889_cubic(dens, temp)[0][0]
+        elif HeI_line == '4026':
+            HeI_emis = 10 ** HeI_emis_4026_cubic(dens, temp)[0][0]
+        elif HeI_line == '4471':
+            HeI_emis = 10 ** HeI_emis_4471_cubic(dens, temp)[0][0]
+        elif HeI_line == '5016':
+            HeI_emis = 10 ** HeI_emis_5016_cubic(dens, temp)[0][0]
+        elif HeI_line == '5876':
+            HeI_emis = 10 ** HeI_emis_5876_cubic(dens, temp)[0][0]
+        elif HeI_line == '6678':
+            HeI_emis = 10 ** HeI_emis_6678_cubic(dens, temp)[0][0]
+        elif HeI_line == '7065':
+            HeI_emis = 10 ** HeI_emis_7065_cubic(dens, temp)[0][0]
+        elif HeI_line == '10833':
+            HeI_emis = 10 ** HeI_emis_10833_cubic(dens, temp)[0][0]
+        else:
+            print('Not ready for this helium line!')
+            pdb.set_trace()
+    else:
+        print ('Not ready for this degree of interpolation!')
+        pdb.set_trace()
+
 
     # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
     Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
@@ -753,7 +801,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
         elif nearest_wave in helium_lines and nearest_wave != 3890.151:
             line_species = 'helium'
             
-            emissivity_ratio = helium_emissivity(waves[w], temp, dens)            
+            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)            
             a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
             #collisional_to_recomb_ratio = helium_collision_to_recomb(waves[w], temp, dens) # C/R is included in Porter 2012 emissivities
@@ -778,7 +826,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
             # HeI 3890.151 contribution:
             line_species = 'helium'
             
-            emissivity_ratio = helium_emissivity(waves[w], temp, dens)
+            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)
             a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
             #collisional_to_recomb_ratio = helium_collision_to_recomb(waves[w], temp, dens) # C/R is included in Porter 2012 emissivities
@@ -886,7 +934,7 @@ def generate_emission_line_ratio_CCMred(filename, waves, EWs, EW_Hb, y_plus, tem
         elif nearest_wave in helium_lines and nearest_wave != 3890.151:
             line_species = 'helium'
             
-            emissivity_ratio = helium_emissivity(waves[w], temp, dens)            
+            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)            
             a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
             #collisional_to_recomb_ratio = helium_collision_to_recomb(waves[w], temp, dens); C/R included in Porter 2012 emissivities
@@ -908,7 +956,7 @@ def generate_emission_line_ratio_CCMred(filename, waves, EWs, EW_Hb, y_plus, tem
             # HeI 3890.151 contribution:
             line_species = 'helium'
             
-            emissivity_ratio = helium_emissivity(waves[w], temp, dens)
+            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)
             a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
             #collisional_to_recomb_ratio = helium_collision_to_recomb(waves[w], temp, dens); C/R included in Porter 2012 emissivities
