@@ -76,6 +76,22 @@ for t in range(len(np.arange(5000, 26000, 1000))):
                                                           np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
 
+# Interpolated Storey 2018 hydrogen emissivities
+# Linear
+S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
+S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
+S2018_hg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
+S2018_hd_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
+S2018_h8_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
+#S2018_pg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+# Cubic
+S2018_ha_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
+S2018_hb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
+S2018_hg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
+S2018_hd_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
+S2018_h8_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
+#S2018_pg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+
 def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     '''
     Calculate the emissivity of a hydrogen line
@@ -109,39 +125,44 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
     idx = np.where(np.abs(wave - balmer_lines) < 3.5)[0]
 
+    ####
+    # Move this outside the function so it's not done every time the code runs
+    ####
     if deg == 'linear':
-        S2018_ha_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
-        S2018_hb_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
-        S2018_hg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
-        S2018_hd_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
-        S2018_h8_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
-        #S2018_pg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+        # H-beta emissivity, for calculating the ratio of emissivities
+        Hbeta_emis = S2018_hb_lin(temp, logdens)[0][0]
+
+        if idx == 0: # H-alpha:
+            Xt = S2018_ha_lin(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 1: # H-beta:
+            Xt = 1.
+        elif idx == 2: # H-gamma
+            Xt = S2018_hg_lin(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 3: # H-delta
+            Xt = S2018_hd_lin(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 4: # H8
+            Xt = S2018_h8_lin(temp, logdens)[0][0] / Hbeta_emis
+        else:
+            print('Not ready for this hydrogen line!')
+            pdb.set_trace()
     elif deg == 'cubic':
-        S2018_ha_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
-        S2018_hb_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
-        S2018_hg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
-        S2018_hd_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
-        S2018_h8_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
-        #S2018_pg_interp = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+        Hbeta_emis = S2018_hb_cubic(temp, logdens)[0][0]
+
+        if idx == 0: # H-alpha:
+            Xt = S2018_ha_cubic(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 1: # H-beta:
+            Xt = 1.
+        elif idx == 2: # H-gamma
+            Xt = S2018_hg_cubic(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 3: # H-delta
+            Xt = S2018_hd_cubic(temp, logdens)[0][0] / Hbeta_emis
+        elif idx == 4: # H8
+            Xt = S2018_h8_cubic(temp, logdens)[0][0] / Hbeta_emis
+        else:
+            print('Not ready for this hydrogen line!')
+            pdb.set_trace()
     else:
         print ('Not ready for this degree of interpolation!')
-        pdb.set_trace()
-
-    # H-beta emissivity, for calculating the ratio of emissivities
-    Hbeta_emis = S2018_hb_interp(temp, logdens)[0][0]
-
-    if idx == 0: # H-alpha:
-        Xt = S2018_ha_interp(temp, logdens)[0][0] / Hbeta_emis
-    elif idx == 1: # H-beta:
-        Xt = 1.
-    elif idx == 2: # H-gamma
-        Xt = S2018_hg_interp(temp, logdens)[0][0] / Hbeta_emis
-    elif idx == 3: # H-delta
-        Xt = S2018_hd_interp(temp, logdens)[0][0] / Hbeta_emis
-    elif idx == 4: # H8
-        Xt = S2018_h8_interp(temp, logdens)[0][0] / Hbeta_emis
-    else:
-        print('Not ready for this hydrogen line!')
         pdb.set_trace()
 
     return Xt
