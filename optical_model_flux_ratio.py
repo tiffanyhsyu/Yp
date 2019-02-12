@@ -15,6 +15,8 @@
 ###########
 # Updates #
 ###########
+# 2019-02-11: renamed to optical_model_flux_ratio.py to move onto development with NIR
+# 2019-02-6: added linear or cubic interpolation for helium emissivities; renamed to be helium_emissivity_PFSD2012
 # 2019-01-30: added P. Storey's 2018 hydrogen emissivities (S2018); uses RectBivariateSpline for a linear or cubic interpolation
 
 # Imports
