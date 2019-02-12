@@ -36,7 +36,7 @@ helium_optical_depth = Table.read(path+'/tables/helium_optical_depth', format='a
 hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii', delimiter='\t')
 helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
-# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC
+# Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC; Pg = 10941.082
 balmer_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
 
 # Vacuum wavelengths of Helium lines for MCMC
