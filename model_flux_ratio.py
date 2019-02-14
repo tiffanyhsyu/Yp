@@ -15,10 +15,16 @@
 ###########
 # Updates #
 ###########
+# 2019-02-13: able to reproduce input parameters to within 1-sigma!
 # 2019-02-12: added F(HeI10830)/F(Hbeta) to the model flux
 #               - note: still using HS1987 emissivities to match AOS2015, which means needing (1+C/R(Hbeta))
-#               -
+#               - returns F(HeI10830)/F(Hbeta), not F(HeI10830)/F(Pg)
 # 2019-02-11: created to begin NIR development!
+
+#############
+# Test Flux #
+#############
+# mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 10], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4)
 
 # Imports
 import os
@@ -505,7 +511,6 @@ def stellar_absorption(wave, a_default, ion=None):
         # Multiply underlying stellar absorption by normalization
         if He_idx == 0: # HeI10833
             a_at_wave = 0.800 * a_default # From end of Section 2 in AOS2015
-
         elif He_idx == 1:  # HeI7067
             a_at_wave = 0.400 * a_default
         elif He_idx == 2:  # HeI6679
@@ -890,7 +895,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)
             reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
 
-            flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_HeI + a_He_at_wave)/(EW_HeI) ) ) * \
+            flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_He_at_wave)/(EWs[w]) ) ) * \
                     optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
                     10**-(reddening_function * c_Hb)
 
