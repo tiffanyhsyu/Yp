@@ -1,0 +1,13 @@
+These files are the corresponding mcmc_find_parameters.py for each AOS 2013/2015 system.
+The MCMC for these run on our version of model_flux_ratio.py that I think *best* matches
+that of AOS2013:
+
+-Includes:
+	- Only optical HeI lines
+	- Temperature prior from ITS2007 Te[OIII]
+	- Hydrogen emissivities: Hummer & Storey 1987, AOS2010 reparameterization
+	- Helium emissivities: Porter 2013, kx=ky=1 linear RBS interpolation; includes C/R correction
+	- Reddening: CCM 1989 reddening curve
+
+- 11 Feb 2019
+	- added temperature prior from ITS2007 (had no prior previously on mistake..!)
