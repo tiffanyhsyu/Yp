@@ -127,11 +127,7 @@ def get_model(theta):
 
 		# Infrared HeI10830 line
 		elif nearest_wave == 10833.306:
-			################
-			# Eventually will need to multiply the input, which will be the measured F(HeI10830)/F(Pg) from our spectra,
-			# by a model-depending scaling, to convert the measured ratio into F(HeI10830)/F(Hbeta)
-			# Or...calculate a theoretical F(HeI10830)/F(Hbeta), calculate the scaling factor, and get a model F(HeI10830)/F(Pg)
-			################
+			# Theoretical F(HeI10830)/F(Hbeta) ratio
 			line_species = 'helium'
 
 			emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
