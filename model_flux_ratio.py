@@ -1093,7 +1093,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 pdb.set_trace()
 
             else:
-                # First, theoretical F(Pg)/F(Hb) ratio, aka 'model-dependent scaling' ratio
+                # First, theoretical F(Pg)/F(Hb) ratio, aka 'model-dependent scaling' factor
                 line_species = 'hydrogen'
 
                 emissivity_ratio = hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
