@@ -39,7 +39,7 @@
 #############
 # Test Flux #
 #############
-#mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
+# mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
 
 # Imports
 import os
@@ -948,7 +948,7 @@ def reddening_coefficient(wave):
 ################################
 # General
 # -------
-def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi, EW_Pg=0., hydrogen_method='HS1987'):
+def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi, EW_Pg=0., hydrogen_method='S2018'):
     '''
     Generate the predicted flux ratio
     F(λ)/F(Hβ)
