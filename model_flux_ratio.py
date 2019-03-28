@@ -1001,9 +1001,9 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
     dens = 10**log_dens
     xi = 10**log_xi
 
-    if hydrogen_method = 'S2018':
+    if hydrogen_method == 'S2018':
         collisional_to_recomb_Hbeta = 0.
-    elif hydrogen_method = 'HS1987':
+    elif hydrogen_method == 'HS1987':
         collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
 
     f_lambda_at_Hbeta = f_lambda_avg_interp(hydrogen_lines[2])
@@ -1018,10 +1018,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
         if nearest_wave in hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:
             line_species = 'hydrogen'
 
-            if hydrogen_method = 'S2018':
+            if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
                 collisional_to_recomb_ratio = 0. # S2018 includes C/R
-            elif hydrogen_method = 'HS1987':
+            elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R
 
@@ -1072,10 +1072,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
             # H8 contribution:
             line_species = 'hydrogen'
 
-            if hydrogen_method = 'S2018':
+            if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
                 collisional_to_recomb_ratio = 0. # S2018 includes C/R
-            elif hydrogen_method = 'HS1987':
+            elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
                 collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
                 collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
