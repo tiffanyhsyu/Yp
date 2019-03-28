@@ -68,6 +68,7 @@ helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472
 
 # Hydrogen
 # --------
+# Interpolated Storey 2018 hydrogen emissivities
 ha_RBS = np.zeros((21,6))
 hb_RBS = np.zeros((21,6))
 hg_RBS = np.zeros((21,6))
@@ -94,8 +95,6 @@ for t in range(len(np.arange(5000, 26000, 1000))):
     pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
                                                           np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-
-# Interpolated Storey 2018 hydrogen emissivities
 # Linear
 S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
 S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
@@ -142,11 +141,8 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     logdens = np.log10(dens)
 
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
-    idx = np.where(np.abs(wave - hydrogen_lines) < 3.5)[0]
+    idx = np.where(np.abs(wave - hydrogen_lines) < 3.5)[0][0]
 
-    ####
-    # Move this outside the function so it's not done every time the code runs
-    ####
     if deg == 'linear':
         # H-beta emissivity, for calculating the ratio of emissivities
         Hbeta_emis = S2018_hb_lin(temp, logdens)[0][0]
@@ -218,7 +214,7 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
     T4 = temp / 10000.
 
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
-    idx = np.where(np.abs(wave - hydrogen_lines) < 3)[0]
+    idx = np.where(np.abs(wave - hydrogen_lines) < 3)[0][0]
 
     if idx == 1:
         line = str('Ha')
@@ -253,8 +249,9 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 
 # Helium
 # ------
-#### These currently are interpolated *not* on a log(n_e) scale!!!!
 # Interpolated PFSD 2012/2013 erratum HeI emissivities; T=5000-25000, log(n_e)=1-14
+#### These are *not* interpolated on a log(n_e) scale!
+#### Currently not being used -- using fine mesh HeI emissivities below instead
 # Linear
 #HeI3889_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=1)
 #HeI4026_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=1)
@@ -273,6 +270,7 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 #HeI6678_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=3, ky=3)
 #HeI7065_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=3, ky=3)
 #HeI10833_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=3, ky=3)
+# ------
 # Interpolated Porter HeI emissivities on finer mesh, from AOPS 2013; T=10000-22000, log(n_e)=0-4
 dens_finemesh = np.array(np.unique(helium_finemesh_emis['log n_e']))
 temp_finemesh = np.arange(10000, 22250, step=250)
@@ -295,12 +293,10 @@ HeI6678_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh
 HeI7065_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['7065A'].reshape((31, 49)), kx=3, ky=3)
 HeI10833_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['10830A'].reshape((31, 49)), kx=3, ky=3)
 
-def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
+def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
     '''
     Calculate the emissivity of a HeI line
-    using Porter et al.'s 2013 emissivities
-    (which are edits to emissivities in Porter,
-    Ferland, Storey, & Detisch 2012 MNRAS 425, L28)
+    using Porter's 2013 fine mesh emissivities
 
     These include the collisional to recombination
     correction and are interpolated using a 
@@ -380,21 +376,21 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
         pdb.set_trace()
 
     # Calculate Hbeta emissivity for a ratio
-    if ratio == 'porter':
-        # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
-        Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
-                     * (1 / temp) * 1e-25
-    elif ratio == 'storey':
+    if ratio == 'storey':
         if deg == 'linear':
             Hbeta_emis = S2018_hb_lin(temp, np.log10(dens))[0][0]
         elif deg == 'cubic':
             Hbeta_emis = S2018_hb_cubic(temp, np.log10(dens))[0][0]
+    elif ratio == 'porter':
+        # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
+        Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
+                     * (1 / temp) * 1e-25
     else:
         print ('Not prepared for this method of H-beta emissivity')
 
     return HeI_emis / Hbeta_emis
 
-def helium_emissivity_old_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
+def helium_emissivity_coarse_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
     '''
     Calculate the emissivity of a HeI line
     using Porter et al.'s 2013 emissivities
@@ -627,7 +623,7 @@ def helium_emissivity_BSS2007(wave, temp, dens):
 # EWs + Underlying Absorption #
 ###############################
 # Linear fit to normalizations to Hb from Equation 5.1 of AOS 2010, excluding downward trend of Ha
-fit_balmer_factor = np.polyfit(np.array([4862.721, 4341.684, 4102.891]), np.array([1.00, 0.959, 0.896]), deg=1) # Fit to Hb, Hg, Hd
+fit_balmer_factor = np.polyfit(np.array([4862.721, 4341.684, 4102.891]), np.array([1.00, 0.959, 0.896]), deg=1) # Fit only to Hb, Hg, Hd; Ha causes a turnaround
 a_HI_balmer_fit = (fit_balmer_factor[0] * hydrogen_lines) + fit_balmer_factor[1]
 
 # Linear fit to normalizations to HeI4472 from Equation 5.2 of AOS 2010
@@ -640,6 +636,9 @@ def stellar_absorption(wave, a_default, ion=None):
     Calculate the amount of underlying hydrogen
     or helium stellar absorption at the
     wavelength of interest
+
+    Normalizations for optical stellar absorption given in Equations 5.1, 5.2 of AOS2010
+    Normalizations for optical+NIR stellar absorption given in Equations 4.2, 4.3 of AOS2015
 
     Parameters
     ----------
@@ -662,12 +661,10 @@ def stellar_absorption(wave, a_default, ion=None):
         Amount of stellar absorption at
         the input wavelength
     '''
-    # Normalizations for optical stellar absorption given in Equations 5.1, 5.2 of AOS2010
-    # Normalizations for optical+NIR stellar absorption given in Equations 4.2, 4.3 of AOS2015
     # Underlying HI stellar absorption
     if ion in ['hydrogen', 'Hydrogen', 'H']:
         # Match to closest Balmer line
-        H_idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0]
+        H_idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]
 
         if H_idx == 0: # P-gamma
             a_at_wave = 0.4 * a_default # From b/t Eq. 4.1, 4.2 of AOS2015
@@ -680,7 +677,7 @@ def stellar_absorption(wave, a_default, ion=None):
         elif H_idx == 4: # H-delta
             a_at_wave = 0.896 * a_default
         elif H_idx == 5: # H8
-            a_at_wave = a_HI_balmer_fit[4]*a_default
+            a_at_wave = a_HI_balmer_fit[He_idx]*a_default
         else:
             print ('Cannot identify this hydrogen line for a stellar absorption at this wavelength')
             pdb.set_trace()
@@ -688,7 +685,7 @@ def stellar_absorption(wave, a_default, ion=None):
     # Underlying HeI stellar absorption
     elif ion in ['helium', 'Helium', 'He']:
         # Match to closest Helium line
-        He_idx = np.where(np.abs(helium_lines - wave) < 3.5)[0]
+        He_idx = np.where(np.abs(helium_lines - wave) < 3.5)[0][0]
 
         # Multiply underlying stellar absorption by normalization
         if He_idx == 0: # HeI10833
@@ -700,7 +697,7 @@ def stellar_absorption(wave, a_default, ion=None):
         elif He_idx == 3:  # HeI5877
             a_at_wave = 0.874 * a_default
         elif He_idx == 4:  # HeI5017
-            a_at_wave = a_He_fit[3] * a_default
+            a_at_wave = a_He_fit[He_idx] * a_default
         elif He_idx == 5:  # HeI4472
             a_at_wave = a_default
         elif He_idx == 6:  # HeI4027
@@ -749,7 +746,7 @@ def optical_depth_function(wave, temp, dens, tau):
 
     if len(idx) == 0:
         # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
-        if np.abs(5017.079 - wave) < 3:
+        if np.abs(5017.079 - wave) < 3.5:
             f_tau = 1
         else:
             print ('No expression for optical depth at this wavelength')
@@ -809,7 +806,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
     T4 = temp / 10000.
 
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
-    idx = np.where(np.abs(hydrogen_lines - wave) < 3)[0]
+    idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]
 
     if idx == 1:
         line = str('Ha')
@@ -869,7 +866,7 @@ def helium_collision_to_recomb(wave, temp, dens):
     T4 = temp / 10000.
 
     # Find which Upper Level this wavelength comes from
-    wave_idx = np.where(np.abs(heliumcoeff['Wavelength'] - wave) < 3)[0]
+    wave_idx = np.where(np.abs(heliumcoeff['Wavelength'] - wave) < 3.5)[0]
     upper_level = heliumcoeff['Upper Level'][wave_idx]
     #    print ('Upper Level of HeI', wave, 'is', upper_level)
 
@@ -877,8 +874,7 @@ def helium_collision_to_recomb(wave, temp, dens):
     idx = np.where(helium_CR_coeff['n 2S+1L (Upper)'] == upper_level)[0]
 
     # Calculate the summation term in Equation A2 of PFM 2007 Citation (2)
-    sum_upper_lev = np.sum(
-        helium_CR_coeff['ai'][idx] * (T4 ** helium_CR_coeff['bi'][idx]) * np.exp(helium_CR_coeff['ci'][idx] / T4))
+    sum_upper_lev = np.sum(helium_CR_coeff['ai'][idx] * (T4 ** helium_CR_coeff['bi'][idx]) * np.exp(helium_CR_coeff['ci'][idx] / T4))
 
     # Amount of collisional to recombination emission; from Equation A2 of PFM 2007
     helium_CR = ((1 + (3552. * (T4 ** -0.55) / dens))**-1) * sum_upper_lev
@@ -944,11 +940,13 @@ def reddening_coefficient(wave):
 ################################
 # Generate table of model flux #
 ################################
-def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi):
+# General
+# -------
+def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi, EW_Pg=0., hydrogen_method='HS1987'):
     '''
     Generate the predicted flux ratio
     F(λ)/F(Hβ)
-    
+
     Parameters
     ----------
     waves : array or float
@@ -978,43 +976,51 @@ def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus,
         absorption (in Angstroms) at HeI λ4472
     tau_He : float
         Optical depth at HeI λ3889
-    n_HI : float
-        Density of neutral hydrogen
-        (cm^-3)
+#    n_HI : float
+#        Density of neutral hydrogen (cm^-3)
     xi : float
-    	Ratio of neutral to singly ionized
-    	hydrogen density
-    
+        Ratio of neutral to singly ionized hydrogen density
+
     Returns
     -------
     flux_ratio : float
+        The model emission line flux ratio, relative to Hb
     '''
     emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # 1: to remove the duplicate HeI+H8 3890 line
 
-    species = []
     wavelength = []
+    species = []
     flux_ratio = []
     
     dens = 10**log_dens
     xi = 10**log_xi
 
-    collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
+    if hydrogen_method = 'S2018':
+        collisional_to_recomb_Hbeta = 0.
+    elif hydrogen_method = 'HS1987':
+        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
+
     f_lambda_at_Hbeta = f_lambda_avg_interp(hydrogen_lines[2])
 
     for w in range(len(waves)):
         # Determine if working with hydrogen or helium line; within 3 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
-        nearest_wave = emis_lines[np.where(np.abs(emis_lines - waves[w]) < 3)[0]][0]
+        nearest_wave = emis_lines[np.where(np.abs(emis_lines - waves[w]) < 3.5)[0]][0]
 
         print ('Working on ', nearest_wave)
         
-        # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166)
-        if nearest_wave in hydrogen_lines and nearest_wave != 3890.166:
+        # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166) and Pg
+        if nearest_wave in hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:
             line_species = 'hydrogen'
-            
-            emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
+
+            if hydrogen_method = 'S2018':
+                emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
+                collisional_to_recomb_ratio = 0. # S2018 includes C/R
+            elif hydrogen_method = 'HS1987':
+                emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R
+
             a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)            
-            collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R 
-            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.            
+            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
 
             flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
                     ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
@@ -1024,7 +1030,7 @@ def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus,
         elif nearest_wave in helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
             line_species = 'helium'
             
-            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)            
+            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens, ratio='storey')
             a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
             optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
             reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
@@ -1039,6 +1045,7 @@ def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus,
 #            frac_of_he = ( (y[0] * ( (EWs[w] + a_H_at_wave) / EWs[w]) ) - ( 0.104 * (temp/1e4)**0.046 * 10**-(reddening_function * c_Hb) ) ) / y[0]
 #            EW_HeI = frac_of_he * EWs[w]
 #            EW_H8 = (1-frac_of_he) * EWs[w]
+            # Assume fractional contribution of HeI vs H8 to the blended line is 50/50
             frac_of_he = 0.5
             EW_HeI = frac_of_he * EWs[w]
             EW_H8 = (1-frac_of_he) * EWs[w]
@@ -1059,10 +1066,15 @@ def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus,
             # H8 contribution:
             line_species = 'hydrogen'
 
-            emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-            a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)            
-            collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for C/R(Hg) to C/R(H8)
-            collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+            if hydrogen_method = 'S2018':
+                emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
+                collisional_to_recomb_ratio = 0. # S2018 includes C/R
+            elif hydrogen_method = 'HS1987':
+                emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
+                collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
+                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+
+            a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)
 
             flux += emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_H8 + a_H_at_wave)/(EW_H8) ) ) * \
                     ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
@@ -1070,185 +1082,54 @@ def generate_nir_emission_line_ratio(filename, waves, EWs, EW_Hb, EW_Pg, y_plus,
         
         # Infrared HeI10830 line
         elif nearest_wave == 10833.306:
-            # First, theoretical F(Pg)/F(Hb) ratio, aka 'model-dependent scaling' ratio; has to use S2018 Pg emissivity
-            line_species = 'hydrogen'
+            if EW_Pg == 0.:
+                print ('Need to specify the EW of P-gamma!')
+                pdb.set_trace()
 
-            emissivity_ratio = hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
-            a_H_at_wave = stellar_absorption(10941.082, a_H, ion=line_species)
-            reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+            else:
+                # First, theoretical F(Pg)/F(Hb) ratio, aka 'model-dependent scaling' ratio
+                line_species = 'hydrogen'
 
-            Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
-                            ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
-                            10**-(reddening_function * c_Hb)
+                emissivity_ratio = hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                a_H_at_wave = stellar_absorption(10941.082, a_H, ion=line_species)
+                reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
-            # Now, theoretical F(HeI10830)/F(Hbeta) ratio
-            line_species = 'helium'
+                # Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
+                Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
+                                ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
+                                10**-(reddening_function * c_Hb)
 
-            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)
-            a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)
-            optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)
-            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
+                # Now, theoretical F(HeI10830)/F(Hbeta) ratio
+                line_species = 'helium'
 
-            HeI10830_to_Hb_flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_He_at_wave)/(EWs[w]) ) ) * \
-                    optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
-                    10**-(reddening_function * c_Hb)
+                emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)
+                a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)
+                optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)
+                reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
 
-            # This now gives F(HeI10830)/F(Pg), as measured
-            flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
+                HeI10830_to_Hb_flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_He_at_wave)/(EWs[w]) ) ) * \
+                        optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
+                        10**-(reddening_function * c_Hb)
+
+                # This now gives F(HeI10830)/F(Pg), format as measured
+                flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
 
         else:
             print ('Check your input wavelength -- not a recognized hydrogen or helium line for MCMC analysis')
             pdb.set_trace()
 
-        flux_ratio.append(flux)
-        species.append(line_species)
         wavelength.append(waves[w])
+        species.append(line_species)
+        flux_ratio.append(flux)
         
     flux_table = Table([wavelength, species, np.array(flux_ratio), EWs], names=('Wavelength', 'Species', 'Flux Ratio', 'EW'))
     flux_table.write(path+'/'+filename, format='ascii', overwrite=True)
     
     return
 
-
-def generate_optical_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi):
-    '''
-    Generate the predicted flux ratio
-    F(λ)/F(Hβ)
-    
-    Parameters
-    ----------
-    waves : array or float
-        Wavelength of line(s) of interest (in Angstroms)
-    EWs : array or float
-        Equivalent width of line(s) of interest (in Angstroms)
-    EW_Hb : float
-        Equivalent width of Hβ (in Angstroms)
-    y_plus : float
-        He+/H+ ratio; abundance of
-        singly ionized helium
-    temp : float
-        Temperature of the gas (in Kelvin)
-    dens : float
-        Density of the gas (cm^-3)
-    c_Hb : float
-        Amount of reddening, in both
-        the system and in the line
-        of sight
-    a_H : float
-        Underlying hydrogen stellar
-        absorption (in Angstroms) at Hβ
-    a_He : float
-        Underlying helium stellar
-        absorption (in Angstroms) at HeI λ4472
-    tau_He : float
-        Optical depth at HeI λ3889
-    n_HI : float
-        Density of neutral hydrogen
-        (cm^-3)
-    xi : float
-        Ratio of neutral to singly ionized
-        hydrogen density
-    
-    Returns
-    -------
-    flux_ratio : float
-    '''
-    emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # 1: to remove the duplicate HeI+H8 3890 line
-
-    species = []
-    wavelength = []
-    flux_ratio = []
-    
-    dens = 10**log_dens
-    xi = 10**log_xi
-
-    collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
-    f_lambda_at_Hbeta = f_lambda_avg_interp(hydrogen_lines[2])
-
-    for w in range(len(waves)):
-        # Determine if working with hydrogen or helium line; within 3 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
-        nearest_wave = emis_lines[np.where(np.abs(emis_lines - waves[w]) < 3)[0]][0]
-
-        print ('Working on ', nearest_wave)
-        
-        # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166)
-        if nearest_wave in hydrogen_lines and nearest_wave != 3890.166:
-            line_species = 'hydrogen'
-            
-            emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-            a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)            
-            collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R 
-            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.            
-
-            flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
-                    ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-                    10**-(reddening_function * c_Hb)
-                    
-        # Any HeI line besides the blended HeI+H8 line (HeI at 3890.151) and NIR HeI10833 line
-        elif nearest_wave in helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
-            line_species = 'helium'
-            
-            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)            
-            a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
-            optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
-            #collisional_to_recomb_ratio = helium_collision_to_recomb(waves[w], temp, dens) # C/R is included in Porter 2012 emissivities
-            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
-
-            flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_He_at_wave)/(EWs[w]) ) ) * \
-                    optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
-                    10**-(reddening_function * c_Hb)
-        
-        # The blended HeI+H8 line
-        elif nearest_wave == 3890.151 or nearest_wave == 3890.166:
-            # Calculate fractional contribution of HeI and H8 to the blended line
-#            frac_of_he = ( (y[0] * ( (EWs[w] + a_H_at_wave) / EWs[w]) ) - ( 0.104 * (temp/1e4)**0.046 * 10**-(reddening_function * c_Hb) ) ) / y[0]
-#            EW_HeI = frac_of_he * EWs[w]
-#            EW_H8 = (1-frac_of_he) * EWs[w]
-            frac_of_he = 0.5
-            EW_HeI = frac_of_he * EWs[w]
-            EW_H8 = (1-frac_of_he) * EWs[w]
-
-            reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
-
-            # HeI 3890.151 contribution:
-            line_species = 'helium'
-            
-            emissivity_ratio = helium_emissivity_PFSD2012(waves[w], temp, dens)
-            a_He_at_wave = stellar_absorption(waves[w], a_He, ion=line_species)            
-            optical_depth_at_wave = optical_depth_function(waves[w], temp, dens, tau_He)            
-
-            flux = y_plus * emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_HeI + a_He_at_wave)/(EW_HeI) ) ) * \
-                    optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
-                    10**-(reddening_function * c_Hb)
-                    
-            # H8 contribution:
-            line_species = 'hydrogen'
-
-            emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-            a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)            
-            collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for C/R(Hg) to C/R(H8)
-            collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
-
-            flux += emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_H8 + a_H_at_wave)/(EW_H8) ) ) * \
-                    ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-                    10**-(reddening_function * c_Hb)
-
-        else:
-            print ('Check your input wavelength -- not a recognized hydrogen or helium line for MCMC analysis')
-            pdb.set_trace()
-
-        flux_ratio.append(flux)
-        species.append(line_species)
-        wavelength.append(waves[w])
-        
-    flux_table = Table([wavelength, species, np.array(flux_ratio), EWs], names=('Wavelength', 'Species', 'Flux Ratio', 'EW'))
-    flux_table.write(path+'/'+filename, format='ascii', overwrite=True)
-    
-    return
-
-
+# CCM Reddening Curve
+# -------------------
 def generate_emission_line_ratio_CCMred(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi):
-#def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, n_HI):
     '''
     Generate the predicted flux ratio
     F(λ)/F(Hβ)
