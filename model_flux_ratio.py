@@ -683,7 +683,7 @@ def stellar_absorption(wave, a_default, ion=None):
         elif H_idx == 4: # H-delta
             a_at_wave = 0.896 * a_default
         elif H_idx == 5: # H8
-            a_at_wave = a_HI_balmer_fit[He_idx]*a_default
+            a_at_wave = a_HI_balmer_fit[H_idx]*a_default
         else:
             print ('Cannot identify this hydrogen line for a stellar absorption at this wavelength')
             pdb.set_trace()
