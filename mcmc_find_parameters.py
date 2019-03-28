@@ -10,8 +10,8 @@ from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
-flux_ratios = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
-#flux_ratios = Table.read(os.getcwd()+'/Mrk450', format='ascii', delimiter=' ')
+full_tbl = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
+flux_ratios = full_tbl[:-1] # Ignore the last entry, assumed to be for P-gamma, for MCMC
 
 # Names of wavelenghts of interest for MCMC
 y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
@@ -27,14 +27,14 @@ emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # [1:] 
 EWs_meas = np.array(flux_ratios['EW'])
 
 y = np.array(flux_ratios['Flux Ratio']) # F(lambda) / F(H-beta)
-y_error = np.array(flux_ratios['Flux Ratio'] * 0.002)
+y_error = np.array(flux_ratios['Flux Ratio'] * 0.002) # For test_output flux, where we have no EW errors
 #y_error = np.array(flux_ratios['Flux Ratio Errors'])
 x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
-min_temp, max_temp = 5000, 25000  # electron temperature (K)
-min_log_dens, max_log_dens = 0, 3  # log10(electron density) (cm^-3)
+min_temp, max_temp = 10000, 22000 # restricted from 5000, 25000 to match finemesh HeI emissivities # electron temperature (K)
+min_log_dens, max_log_dens = 0, 4  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
 min_a_He, max_a_He = 0, 4  # underlying stellar HeI absorption (Angstroms)
@@ -51,27 +51,27 @@ def get_model(theta):
 	dens = 10 ** log_dens
 	xi = 10 ** log_xi
 
-	# Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
+	# Take into account error on EW(Hb) by perturbing EW(Hb) by some EW error
 	EW_Hb = np.random.normal(flux_ratios['EW'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0], 0.1*flux_ratios['EW'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0]) #flux_ratios['EW Errors'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
 	# Continuum level ratio
 	h = y * EW_Hb / EWs_meas # relative to H-beta; i.e., h(lambda) / h(H-beta)
 
 	# Model flux
-	model_flux = np.zeros(12) # 12 emission line fluxes we want to model
+	model_flux = np.zeros(y.size) # emission line fluxes we want to model
 
 	# Some values, calculated at Hbeta, for later use in model flux
 	collisional_to_recomb_Hbeta = mfr.hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
 	f_lambda_at_Hbeta = mfr.f_lambda_avg_interp(hydrogen_lines[2])
 
-	for w in range(len(emis_lines[:-1])): # [:-1] removes Pa-g which is currently in hydrogen_lines
-		# Determine if working with hydrogen or helium line; within 3 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
-		nearest_wave = emis_lines[np.where(np.abs(emis_lines - emis_lines[w]) < 3)[0]][0]
+	for w in range(len(emis_lines[:-1])): # [:-1] removes Pa-g which is currently in hydrogen_lines and passed onto emis_lines
+		# Determine if working with hydrogen or helium line; within 3.5 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
+		nearest_wave = emis_lines[np.where(np.abs(emis_lines - emis_lines[w]) < 3.5)[0]][0]
 		# The above line is redundant for my input waves, but allows for cases where emis_lines[w] is some other array, say waves_of_interest[w], 
 		# and not exactly at the wavelengths given in the emis_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
 	
-		# Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166)
-		if nearest_wave in hydrogen_lines and nearest_wave != 3890.166:
+		# Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166) and Pg
+		if nearest_wave in hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:
 			line_species = 'hydrogen'
 			
 			emissivity_ratio = mfr.hydrogen_emissivity_HS1987(emis_lines[w], temp, dens)
@@ -86,17 +86,17 @@ def get_model(theta):
 			flux = ( emissivity_ratio * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
 				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_H_at_wave / EW_Hb) * (h[w]) )
 				
-		# Any HeI line besides the blended HeI+H8 line (HeI at 3890.151)
+		# Any HeI line besides the blended HeI+H8 line (HeI at 3890.151) and NIR HeI10830 line
 		elif nearest_wave in helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
 			line_species = 'helium'
             
 			emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
-			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)
+			#collisional_to_recomb_ratio = mfr.helium_collision_to_recomb(emis_lines[w], temp, dens) # Folded into PFSD2012 HeI emissivities
 			reddening_function = ( mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta ) - 1.
 
-			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
+			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
 				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w]) )
 
 		# The blended HeI+H8 line
@@ -109,9 +109,9 @@ def get_model(theta):
 			emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)            
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)            
-			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)            
+			#collisional_to_recomb_ratio = mfr.helium_collision_to_recomb(emis_lines[w], temp, dens) # Folded into PFSD2012 HeI emissivities
 
-			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
+			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
 				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w]) )
  
 			# H8 contribution:
@@ -127,6 +127,18 @@ def get_model(theta):
 
 		# Infrared HeI10830 line
 		elif nearest_wave == 10833.306:
+			# First, theoretical F(Pg)/F(Hb) ratio, aka 'model-dependent scaling' factor
+			line_species = 'hydrogen'
+
+			emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+			a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
+			reddening_function = ( mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+
+			# Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
+			EW_Pg = full_tbl[np.where(full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+			Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
+			                ( 1 / (1 + collisional_to_recomb_Hbeta) ) * 10**-(reddening_function * c_Hb)
+
 			# Theoretical F(HeI10830)/F(Hbeta) ratio
 			line_species = 'helium'
 
@@ -136,8 +148,13 @@ def get_model(theta):
 			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)            
 			reddening_function = ( mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta ) - 1.
 
-			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w]) )
+			# The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
+			# theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
+			HeI10830_to_Hb_flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
+				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w] * Pg_to_Hb_flux) )
+
+			# Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
+			flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
 
 		else:
 			print ('Check your input wavelength -- not a recognized hydrogen or helium line for MCMC analysis')
@@ -160,8 +177,6 @@ def lnprior(theta):
 		min_a_He <= a_He <= max_a_He and \
 		min_tau_He <= tau_He <= max_tau_He and \
 		min_log_xi <= log_xi <= max_log_xi:
-		#return ( -(temp - 12979)**2 / (0.2*12979)**2 ) # Mrk450
-		#return ( -(temp - 16620)**2 / (0.2*16620)**2 ) # J1655
 		return 0.0
 
 	return -np.inf
@@ -207,9 +222,7 @@ print('Done!')
 print((time.time() - a) / 60.0, 'mins')
 
 print('Saving samples')
-#np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('Mrk450_realerrors_EWdist_cont_Tprior', nwalkers, nmbr), sampler.chain)
 np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('test_MCMC_EWdist_cont', nwalkers, nmbr), sampler.chain)
-#np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('J1655p6337_realerrors_EWdist_cont', nwalkers, nmbr), sampler.chain)
 
 print('Making plots')
 burnin = int(0.8 * nmbr)
@@ -217,8 +230,7 @@ burnin = int(0.8 * nmbr)
 samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
 # Names of 8 parameters and input 'true' parameter values
 prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{H}$', '$a_{He}$', '$\\tau_{He}', '$log(\\xi)$'] # '$n_{HI}$']
-input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -2]) # Input parameters for fake spectra
-#input_vals = np.array([0.08634, 12979, 1.987, 0.15, 2.31, 0.37, 2.27, -1.767]) # AOS 2015's solved parameters for Mrk450 No.1
+input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4]) # Input parameters for fake spectra
 
 print ('Best parameter values:')
 #y_plus_mcmc, temp_mcmc, dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, n_HI_mcmc = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
