@@ -15,11 +15,17 @@
 ###########
 # Updates #
 ###########
-# 2010-03-07: removed Porter's HeI emissivities on the rougher grid but covering T=5000-25000, log(n_e)=0-14
+# 2019-03-28: fixed bug in underlying stellar absorption (grabbing wrong value for H8 and HeI5017)
+#             edits to generate_emission_line_ratio
+#              - combined generate_nir_emission_line_ratio and generate_optical_emission_line_ratio
+#              - added option for using S2018 emissivities (default) or HS1987 emissivities
+#             cleaned up formatting
+# 2019-03-07: removed Porter's HeI emissivities on older coarse grid with larger parameter range T=5000-25000, log(n_e)=0-14
 #               - changed temperature priors to be 10000-22000 to match fine mesh
 #               - hoping to speed up code by eliminating reading in these 'old' emissivities..!
 # 2019-03-05: added Porter's HeI emissivities on a finer parametric mesh at T=10000-22000, log(n_e)=0-4
 # 2019-03-01: added options for methods of calculating Hbeta emissivity to use as ratio for a HeI emissivity in helium_emissivity_PFSD2012
+#               - defaults to S2018 Hbeta emissivity (as of 03-28)
 #               - able to reproduce input parameters to within 1-sigma!
 # 2019-02-25: edited model flux generator to produce F(HeI10830)/F(Pg) instead F(Hbeta) to mirror our measured data
 #               - separated this into generate_nir_emission_line_ratio, which uses HS1987 emissivities for all but Pg, which uses S2018
