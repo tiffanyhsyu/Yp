@@ -257,6 +257,15 @@ print ('log(xi)', log_xi_mcmc)
 print ('\n Input parameter values:')
 print (input_vals)
 
+allpars = np.hstack((y_plus_mcmc, log_dens_mcmc, a_He_mcmc, tau_He_mcmc, temp_mcmc, c_Hb_mcmc, a_H_mcmc, log_xi_mcmc))
+outdat = open("all_output", 'r').readlines()
+sendout = open("all_output", 'w')
+for ii in outdat: sendout.write(ii)
+sendout.write("SBS0940+5442_nir ")
+for ii in allpars: sendout.write("{0:f} ".format(ii))
+sendout.write("\n")
+sendout.close()
+
 '''
 fig, axes = plt.subplots(ndim, 1, sharex=True, figsize=(8, 12))
 for i in range(ndim):
