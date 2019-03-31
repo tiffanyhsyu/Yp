@@ -3,6 +3,7 @@ from astropy.table import Table
 
 
 def load_AOS2015(galaxyname):
+    # T_OIII are taken from Column 4, Table 3, Izotov et al. (2014)
     outdict = dict()
     dir = '/test_data/optical+nir/'
     if galaxyname == "IZw18SE1":
