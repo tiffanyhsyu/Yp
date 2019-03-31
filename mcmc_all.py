@@ -304,8 +304,14 @@ if __name__ == "__main__":
         outfile.write("Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n")
         outfile.close()
         # Run MCMC on all galaxies
+        galfail = []
         for gal in names:
-            MCMCgal(gal)
+            try:
+                MCMCgal(gal)
+            except IOError:
+                print("ERROR :: The following galaxy data could not be found: {0:s}".format(gal))
+                galfail += [gal]
+        print("The following galaxies failed:\n" + "\n".join(galfail))
     else:
         if rungal in names:
             MCMCgal(rungal)
