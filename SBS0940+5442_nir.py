@@ -32,6 +32,14 @@ y = np.array(flux_ratios['Flux Ratio']) # F(lambda) / F(H-beta)
 y_error = np.array(flux_ratios['Flux Ratio Errors'])
 x = np.zeros(y.size)
 
+# Some things I've changed:
+#  - Prior on temperature may need to be updated. Erik uses something more like 5000-30000 (we discussed this on email previously)...
+#  - The Gaussian temperature prior is based on Te(O III) -- in some cases I saw Te(He+) used -- maybe go through and check this
+#  -
+#  -
+#  -
+#  -
+
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
 min_temp, max_temp = 10000, 22000  # electron temperature (K)
@@ -173,7 +181,9 @@ def lnprior(theta):
 		min_a_He <= a_He <= max_a_He and \
 		min_tau_He <= tau_He <= max_tau_He and \
 		min_log_xi <= log_xi <= max_log_xi:
-		return ( -(temp - 18700)**2 / (0.2*18700)**2 ) # Mrk450
+		return ( -(temp - 18600)**2 / (0.2*18600)**2 ) # Mrk450
+#		return (-(temp - 19900) ** 2 / (0.2 * 19900) ** 2)  # Mrk450
+#		return ( -(temp - 18700)**2 / (0.2*18700)**2 ) # Mrk450
 
 	return -np.inf
 
