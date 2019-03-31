@@ -198,10 +198,10 @@ class MCMCgal:
         return -0.5 * (np.sum((y - model) ** 2 * inv_sigma2 - np.log(inv_sigma2)))
 
     def lnprob(self, theta, x, y, yerr):
-        lp = self._lnprior(theta)
+        lp = self.lnprior(theta)
         if not np.isfinite(lp):
             return -np.inf
-        return lp + self._lnlike(theta, x, y, yerr)
+        return lp + self.lnlike(theta, x, y, yerr)
 
     def mcmc_steps(self):
         # Set up sampler
@@ -219,7 +219,7 @@ class MCMCgal:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self, args=(self._x, self._y, self._y_error), threads=ndim)
 
         print('Running MCMC...')
-        nmbr = 1000
+        nmbr = 10
         a = time.time()
         for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
             if True:  # (i+1) % 100 == 0:
@@ -228,7 +228,7 @@ class MCMCgal:
         print((time.time() - a) / 60.0, 'mins')
 
         print('Saving samples')
-        np.save('{0:s}_{1:d}walkers_{2:d}steps'.format(galaxyname, nwalkers, nmbr), sampler.chain)
+        np.save('{0:s}_{1:d}walkers_{2:d}steps'.format(self.galaxyname, nwalkers, nmbr), sampler.chain)
 
         print('Making plots')
         burnin = int(0.8 * nmbr)
@@ -261,9 +261,11 @@ class MCMCgal:
         allpars = np.hstack((y_plus_mcmc, log_dens_mcmc, a_He_mcmc, tau_He_mcmc, temp_mcmc, c_Hb_mcmc, a_H_mcmc, log_xi_mcmc))
         outdat = open("all_output", 'r').readlines()
         sendout = open("all_output", 'w')
-        for ii in outdat: sendout.write(ii)
-        sendout.write("{0:s} ".format(galaxyname))
-        for ii in allpars: sendout.write("{0:f} ".format(ii))
+        for ii in outdat:
+            sendout.write(ii)
+        sendout.write("{0:s} ".format(self.galaxyname))
+        for ii in allpars:
+            sendout.write("{0:f} ".format(ii))
         sendout.write("\n")
         sendout.close()
 
