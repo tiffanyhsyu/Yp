@@ -219,7 +219,7 @@ class MCMCgal:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self, args=(self._x, self._y, self._y_error), threads=ndim)
 
         print('Running MCMC...')
-        nmbr = 10
+        nmbr = 1000
         a = time.time()
         for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
             if True:  # (i+1) % 100 == 0:
@@ -294,7 +294,7 @@ if __name__ == "__main__":
 
     # Set which galaxy to run
     rungal = "all"
-    rungal = "SBS0940+5442"
+    #rungal = "SBS0940+5442"
 
     if rungal == "all":
         # First, remove the file containing old output
@@ -310,6 +310,12 @@ if __name__ == "__main__":
                 MCMCgal(gal)
             except IOError:
                 print("ERROR :: The following galaxy data could not be found: {0:s}".format(gal))
+                galfail += [gal]
+            except TypeError:
+                print("ERROR :: The following galaxy is not known: {0:s}".format(gal))
+                galfail += [gal]
+            except ValueError:
+                print("ERROR :: The following galaxy failed: {0:s}".format(gal))
                 galfail += [gal]
         print("The following galaxies failed:\n" + "\n".join(galfail))
     else:

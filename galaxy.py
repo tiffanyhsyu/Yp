@@ -70,6 +70,9 @@ def load_AOS2015(galaxyname):
         gname = 'Mrk450No1_nir'
         T_OIII = 11600.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    else:
+        print("Galaxy not known: {0:s}".format(galaxyname))
+        return None
     outdict["full_tbl"] = full_tbl
     outdict["T_OIII"] = T_OIII
     return outdict
