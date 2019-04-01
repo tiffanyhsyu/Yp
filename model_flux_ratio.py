@@ -748,9 +748,9 @@ def optical_depth_function(wave, temp, dens, tau):
     T4 = temp / 10000.
 
     # Match wavelength to relevant column in optical depth table
-    idx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
-
-    if len(idx) == 0:
+    tidx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
+    idx = tidx[0]
+    if len(tidx) == 0:
         # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
         if np.abs(5017.079 - wave) < 3.5:
             f_tau = 1
@@ -763,11 +763,10 @@ def optical_depth_function(wave, temp, dens, tau):
     elif idx == 11: # 11th index corresponds to the row in Table helium_optical_depth that HeI10833 is in
         f_tau = 1 + ((tau/2) * (0.0149 + ((4.45e-3 - (6.34e-5 * dens) + (9.20e-8 * dens ** 2)) * T4)))
     else:
-        a = helium_optical_depth['a'][idx][0]
-        b0 = helium_optical_depth['b0'][idx][0]
-        b1 = helium_optical_depth['b1'][idx][0]
-        b2 = helium_optical_depth['b2'][idx][0]
-
+        a = helium_optical_depth['a'][idx]#[0]
+        b0 = helium_optical_depth['b0'][idx]#[0]
+        b1 = helium_optical_depth['b1'][idx]#[0]
+        b2 = helium_optical_depth['b2'][idx]#[0]
         f_tau = 1 + ((tau/2) * (a + ((b0 + (b1 * dens) + (b2 * dens ** 2)) * T4)))
 
     return f_tau
@@ -831,11 +830,10 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
     Keff_alphaeff = 0.
     for i in range(1, 9): # 1-9 here is to grab the 'Term1', 'Term2', etc. column names
         a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
-        Keff_alphaeff += (a * np.exp(b / T4) * (T4 ** c))
-    #    print (Keff_alphaeff)
+        Keff_alphaeff += (a * np.exp(b/ T4) * (T4 ** c))
 
     # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
-    hydrogen_CR = xi * Keff_alphaeff
+    hydrogen_CR = Keff_alphaeff# * xi
 
     return hydrogen_CR
 
@@ -893,6 +891,8 @@ def helium_collision_to_recomb(wave, temp, dens):
 #############
 # Seaton 1979 extinction curve + interpolation over it
 f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
+#wsort = np.sort(f_lambda_avg['wavelength'])
+#f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'][wsort], f_lambda_avg['X(x)'][wsort])
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
 
 # Cardelli, Clayton, & Mathis 1989 A(lambda)/A_v calculation
