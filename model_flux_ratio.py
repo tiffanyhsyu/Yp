@@ -832,7 +832,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
         Keff_alphaeff += (a * np.exp(b/ T4) * (T4 ** c))
 
     # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
-    hydrogen_CR = Keff_alphaeff# * xi
+    hydrogen_CR = Keff_alphaeff * xi
 
     return hydrogen_CR
 
