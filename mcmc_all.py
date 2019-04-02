@@ -63,13 +63,14 @@ class MCMCgal:
         xi = 10 ** log_xi
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
-#        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-#                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+       EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
-        EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
-        EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
-        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
+        h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
+#        EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
+#        EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
+#        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
         model_flux = np.ones(self._y.size)  # emission lines we want to model
@@ -86,7 +87,7 @@ class MCMCgal:
             # The above line is redundant for my input waves, but allows for cases where emis_lines[w] is some other array, say waves_of_interest[w],
             # and not exactly at the wavelengths given in the emis_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
 
-            # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166)
+            # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166) and P-gamma
             if nearest_wave in self._hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:# and nearest_wave != 4862.721:
                 line_species = 'hydrogen'
 
