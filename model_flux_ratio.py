@@ -671,7 +671,6 @@ def stellar_absorption(wave, a_default, ion=None):
     if ion in ['hydrogen', 'Hydrogen', 'H']:
         # Match to closest Balmer line
         H_idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]
-
         if H_idx == 0: # P-gamma
             a_at_wave = 0.4 * a_default # From b/t Eq. 4.1, 4.2 of AOS2015
         elif H_idx == 1: # H-alpha
@@ -890,7 +889,8 @@ def helium_collision_to_recomb(wave, temp, dens):
 # Reddening #
 #############
 # Seaton 1979 extinction curve + interpolation over it
-f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
+#f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
+f_lambda_avg = Table.read(path+'/tables/extinction_table', format='ascii', delimiter=' ')
 #wsort = np.sort(f_lambda_avg['wavelength'])
 #f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'][wsort], f_lambda_avg['X(x)'][wsort])
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
