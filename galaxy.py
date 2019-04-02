@@ -18,10 +18,10 @@ def load_AOS2015(galaxyname):
         gname = 'SBS0335052E3_nir'
         T_OIII = 20800  #20000.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
-    # elif galaxyname == "J0519+0007":
-    #     gname = ''
-    #     T_OIII =
-    #     full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == "J0519+0007":
+         gname = 'J0519+0007_nir'
+         T_OIII = 20700
+         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
     elif galaxyname == "SBS0940+5442":
         gname = 'SBS0940+5442_nir'
         T_OIII = 18700#18600.0
