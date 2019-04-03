@@ -747,9 +747,8 @@ def optical_depth_function(wave, temp, dens, tau):
     T4 = temp / 10000.
 
     # Match wavelength to relevant column in optical depth table
-    tidx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
-    idx = tidx[0]
-    if len(tidx) == 0:
+    idx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
+    if len(idx) == 0:
         # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
         if np.abs(5017.079 - wave) < 3.5:
             f_tau = 1
