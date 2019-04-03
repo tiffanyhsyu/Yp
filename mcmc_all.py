@@ -63,7 +63,7 @@ class MCMCgal:
         xi = 10 ** log_xi
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
-       EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
                                  self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
@@ -77,7 +77,8 @@ class MCMCgal:
 
         # Some values, calculated at Hbeta, for later use in model flux
         collisional_to_recomb_Hbeta = 0.  # mfr.hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
-        f_lambda_at_Hbeta = mfr.f_lambda_avg_interp(self._hydrogen_lines[2])
+        #f_lambda_at_Hbeta = mfr.f_lambda_avg_interp(self._hydrogen_lines[2])
+        AHbeta_Av = mfr.reddening_coefficient(hydrogen_lines[2]) # CCM 1989 reddening curve
 
         done_3889 = False
         for w in range(len(self._emis_lines)):
@@ -94,7 +95,8 @@ class MCMCgal:
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
                 collisional_to_recomb_ratio = 0.  # mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp)
-                reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                #reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 #			flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
                 #				( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
@@ -110,7 +112,8 @@ class MCMCgal:
                 emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
-                reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                #reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) * \
                         10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_He_at_wave / EW_Hb) * (h[w]))
@@ -119,7 +122,8 @@ class MCMCgal:
             elif nearest_wave == 3890.151 or nearest_wave == 3890.166:
                 if done_3889: continue
                 done_3889 = True
-                reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                #reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 # HeI 3890.151 contribution:
                 line_species = 'helium'
@@ -150,7 +154,10 @@ class MCMCgal:
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp,
                                                                  dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
-                reddening_function = mfr.f_lambda_avg_interp(10941.082)# / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+
+                #### Normalization to Hbeta commented out?
+                #reddening_function = mfr.f_lambda_avg_interp(10941.082)# / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
                 Pg_to_Hb_flux = emissivity_ratio * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(
@@ -162,7 +169,8 @@ class MCMCgal:
                 emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
-                reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                #reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 # The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
                 # theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
