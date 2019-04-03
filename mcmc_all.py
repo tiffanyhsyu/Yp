@@ -34,8 +34,8 @@ class MCMCgal:
         self._EWs_meas = np.array(self._flux_ratios['EW'])
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
-        # y_error = np.array(flux_ratios['Flux Ratio'] * 0.002)
-        self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+        self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
+        #self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
         self._x = np.zeros(self._y.size)
 
         # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -63,8 +63,10 @@ class MCMCgal:
         xi = 10 ** log_xi
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
+        #EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+        #                         self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
         EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+                                 0.1*self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
         h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
@@ -154,7 +156,7 @@ class MCMCgal:
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
 
-                reddening_function = mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                reddening_function = (mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 #reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
@@ -307,10 +309,11 @@ if __name__ == "__main__":
     # The allowed names
     names = ["IZw18SE1", "SBS0335-052E1", "SBS0335-052E3", "J0519+0007", "SBS0940+5442", "Tol65", "SBS1415+437No13",
              "SBS1415+437No2", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59",
-             "SBS1135+581", "Mrk450No1"]
+             "SBS1135+581", "Mrk450No1", "Test"]
 
     # Set which galaxy to run
-    rungal = "all"
+    #rungal = "all"
+    rungal = "Test"
     #rungal = "SBS0940+5442"
     #rungal = "CGCG007-025No2"
 
