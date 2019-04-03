@@ -890,9 +890,10 @@ def helium_collision_to_recomb(wave, temp, dens):
 #############
 # Seaton 1979 extinction curve + interpolation over it
 #f_lambda_avg = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
-f_lambda_avg = Table.read(path+'/tables/extinction_table', format='ascii', delimiter=' ')
 #wsort = np.sort(f_lambda_avg['wavelength'])
 #f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'][wsort], f_lambda_avg['X(x)'][wsort])
+
+f_lambda_avg = Table.read(path+'/tables/extinction_table', format='ascii', delimiter=' ')
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
 
 # Cardelli, Clayton, & Mathis 1989 A(lambda)/A_v calculation
