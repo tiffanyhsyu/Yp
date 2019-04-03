@@ -39,7 +39,7 @@
 #############
 # Test Flux #
 #############
-# mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
+#mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
 
 # Imports
 import os
@@ -748,6 +748,7 @@ def optical_depth_function(wave, temp, dens, tau):
 
     # Match wavelength to relevant column in optical depth table
     idx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
+
     if len(idx) == 0:
         # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
         if np.abs(5017.079 - wave) < 3.5:
@@ -761,10 +762,10 @@ def optical_depth_function(wave, temp, dens, tau):
     elif idx == 11: # 11th index corresponds to the row in Table helium_optical_depth that HeI10833 is in
         f_tau = 1 + ((tau/2) * (0.0149 + ((4.45e-3 - (6.34e-5 * dens) + (9.20e-8 * dens ** 2)) * T4)))
     else:
-        a = helium_optical_depth['a'][idx]#[0]
-        b0 = helium_optical_depth['b0'][idx]#[0]
-        b1 = helium_optical_depth['b1'][idx]#[0]
-        b2 = helium_optical_depth['b2'][idx]#[0]
+        a = helium_optical_depth['a'][idx][0]
+        b0 = helium_optical_depth['b0'][idx][0]
+        b1 = helium_optical_depth['b1'][idx][0]
+        b2 = helium_optical_depth['b2'][idx][0]
         f_tau = 1 + ((tau/2) * (a + ((b0 + (b1 * dens) + (b2 * dens ** 2)) * T4)))
 
     return f_tau
