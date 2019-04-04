@@ -9,7 +9,7 @@ import pdb
 
 # Allowed galaxy names:
 class MCMCgal:
-    def __init__(self, galaxyname):
+    def __init__(self, galaxyname, run_mcmc=True):
         self.galaxyname = galaxyname
         galdict = galaxy.load_AOS2015(self.galaxyname)
         self._full_tbl = galdict["full_tbl"]
@@ -19,8 +19,8 @@ class MCMCgal:
         self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC
 
         # Names of wavelenghts of interest for MCMC
-        self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067',
-                   'HeI10830']
+        #self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+        self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
         # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
@@ -34,8 +34,8 @@ class MCMCgal:
         self._EWs_meas = np.array(self._flux_ratios['EW'])
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
-        # y_error = np.array(flux_ratios['Flux Ratio'] * 0.002)
-        self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+        self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
+        # self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
         self._x = np.zeros(self._y.size)
 
         # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -48,7 +48,8 @@ class MCMCgal:
         self._min_tau_He, self._max_tau_He = 0, 5  # optical depth; range of values from Izotov & Thuan 2010
         # min_n_HI, max_n_HI = 1e-4, 1e-1  # neutral hydrogen density (cm^-3)
         self._min_log_xi, self._max_log_xi = -6, -0.0969  # equals to xi=0-0.8; ratio of neutral hydrogen to singly ionized hydrogen densities; xi = n(HI)/n(HII)
-        self.mcmc_steps()
+        if run_mcmc:
+            self.mcmc_steps()
 
     def __call__(self, theta, x, y, yerr):
         return self.lnprob(theta, x, y, yerr)
@@ -67,9 +68,12 @@ class MCMCgal:
 #                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
-        EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
-        EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
-        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
+        #EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
+        #EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
+        #h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
+        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+                                 0.01 * self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+        h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
         model_flux = np.ones(self._y.size)  # emission lines we want to model
@@ -87,7 +91,7 @@ class MCMCgal:
             # and not exactly at the wavelengths given in the emis_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
 
             # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166)
-            if nearest_wave in self._hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:# and nearest_wave != 4862.721:
+            if nearest_wave in self._hydrogen_lines and nearest_wave != 3890.166:# and nearest_wave != 4862.721:
                 line_species = 'hydrogen'
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
@@ -118,63 +122,87 @@ class MCMCgal:
             elif nearest_wave == 3890.151 or nearest_wave == 3890.166:
                 if done_3889: continue
                 done_3889 = True
+
                 reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
-
-                # HeI 3890.151 contribution:
-                line_species = 'helium'
-
-                emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
-                a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
-                optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
-
-                flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) * \
-                        10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / EW_Hb)) - ((a_He_at_wave / EW_Hb) * (h[w]))
 
                 # H8 contribution:
                 line_species = 'hydrogen'
 
-                emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
+                emissivity_ratio_H = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
-                # collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
-                collisional_to_recomb_ratio = 0.  # collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
 
-                flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
-                         10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
+                # HeI 3890.151 contribution:
+                line_species = 'helium'
+
+                #EW_He = self._EWs_meas[w]
+                emissivity_ratio_He = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
+                optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
+
+                flux = (10 ** -(reddening_function * c_Hb) *
+                        (optical_depth_at_wave * y_plus * emissivity_ratio_He + emissivity_ratio_H) *
+                        ((EW_Hb + a_H) / (EW_Hb))) - (((a_He_at_wave+a_H_at_wave) / EW_Hb) * (h[w]))
 
             # Infrared HeI10830 line
             elif nearest_wave == 10833.306:
-                # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
-                line_species = 'hydrogen'
+                if True:
+                    # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
+                    line_species = 'hydrogen'
 
-                emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp,
-                                                                 dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
-                a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
-                reddening_function = mfr.f_lambda_avg_interp(10941.082)# / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                    emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp,
+                                                                     dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                    a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
+                    reddening_function = (mfr.f_lambda_avg_interp(
+                        10941.082) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
-                EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
-                Pg_to_Hb_flux = emissivity_ratio * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(
-                            reddening_function * c_Hb)
+                    EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+                    Pg_to_Hb_flux = emissivity_ratio * ((EW_Hb + a_H) / (EW_Hb)) / (
+                                (EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(reddening_function * c_Hb)
 
-                # Theoretical F(HeI10830)/F(Hbeta) ratio
-                line_species = 'helium'
+                    # Theoretical F(HeI10830)/F(Hbeta) ratio
+                    line_species = 'helium'
 
-                emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
-                a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
-                optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
-                reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                    emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                    a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
+                    optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
+                    reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
 
-                # The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
-                # theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
-                HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (
-                            1 / (1 + collisional_to_recomb_Hbeta)) * \
-                                       10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - (
-                                                  (a_He_at_wave / EW_Hb) * (h[w] * Pg_to_Hb_flux))
+                    # The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
+                    # theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
+                    HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (
+                                1 / (1 + collisional_to_recomb_Hbeta)) * \
+                                           10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - (
+                                                      (a_He_at_wave / EW_Hb) * (h[w] * Pg_to_Hb_flux))
 
-                # Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
-                flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
-#            elif nearest_wave == 4862.721:
-#                # Don't need to calculate Hbeta?
-#                continue
+                    # Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
+                    flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
+                else:
+                    # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
+                    line_species = 'hydrogen'
+
+                    emissivity_ratio_H = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                    a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
+                    reddening_function_H = (mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+
+                    EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+
+                    # Theoretical F(HeI10830)/F(Hbeta) ratio
+                    line_species = 'helium'
+
+                    emissivity_ratio_He = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                    a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
+                    optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
+                    reddening_function_He = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+
+                    emissivity_ratio = emissivity_ratio_He/emissivity_ratio_H
+                    reddening = 10 ** -(reddening_function_He * c_Hb) / 10 ** -(reddening_function_H * c_Hb)
+                    equivwidth = ((EW_Pg + a_H_at_wave) / (EW_Pg)) / ((self._EWs_meas[w] + a_He_at_wave) / (self._EWs_meas[w]))
+
+                    flux = y_plus * emissivity_ratio * optical_depth_at_wave * reddening * equivwidth
+                    #print(y_plus, emissivity_ratio, optical_depth_at_wave, reddening, equivwidth)
+            # elif nearest_wave == 4862.721:
+            #     # Don't need to calculate Hbeta?
+            #     continue
             else:
                 print ('Check your input wavelength -- not a recognized hydrogen or helium line for MCMC analysis')
                 pdb.set_trace()
@@ -304,10 +332,29 @@ if __name__ == "__main__":
              "SBS1415+437No2", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59",
              "SBS1135+581", "Mrk450No1"]
 
+    if False:
+        # Check the emissivities
+        y_plus = 1.0
+        temp = 2.0E4
+        log_dens = 2.0
+        c_Hb = 0.0
+        a_H = 0.0
+        a_He = 0.0
+        tau_He = 0.0
+        log_xi = 0.0
+        mcmc_inst = MCMCgal("CGCG007-025No2", run_mcmc=False)
+        theta = [y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi]
+        model = mcmc_inst.get_model(theta)
+        print(mcmc_inst._y.size, len(mcmc_inst._y_names), model.size)
+        for ii in range(len(mcmc_inst._y_names)):
+            print(mcmc_inst._y_names[ii], model[ii])
+        assert(False)
+
     # Set which galaxy to run
     rungal = "all"
     #rungal = "SBS0940+5442"
-    #rungal = "CGCG007-025No2"
+    rungal = "CGCG007-025No2"
+    #rungal = "Test"
 
     if rungal == "all":
         # First, remove the file containing old output
@@ -332,7 +379,7 @@ if __name__ == "__main__":
                 galfail += [gal]
         print("The following galaxies failed:\n" + "\n".join(galfail))
     else:
-        if rungal in names:
+        if rungal in names or rungal == "Test":
             MCMCgal(rungal)
         else:
             print("Invalid Galaxy name. Select one of the following:\n" + "\n".join(names))
