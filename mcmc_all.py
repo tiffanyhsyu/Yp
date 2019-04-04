@@ -64,15 +64,15 @@ class MCMCgal:
         xi = 10 ** log_xi
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
-#        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-#                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+       EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+                                self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
         #EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
-        #EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
+        #EW_Hb = self._EWs_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
         #h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
-        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-                                 0.01 * self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+        #EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+        #                         0.01 * self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
         h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
