@@ -19,23 +19,26 @@ class MCMCgal:
         self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC
 
         # Names of wavelenghts of interest for MCMC
-        self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067',
-                   'HeI10830']
+        self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
         # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
-        #self._hydrogen_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
-        self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 4472.755, 4027.328, 3890.151])
+        # Want to include HeI5017 to allow for it if the measurement exists
+        self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 
-        # Wavelengths we care about for MCMC
-        self._emis_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:-1]  # [1:] to remove the duplicate ~3890 wavelength; [:-1] to remove Pg
+        # Wavelengths we care about for MCMC, based on what is given in the input flux file (concatenating self._hydrogen_lines and self._helium_lines means some emlines could be mistakenly modeled even though they are not measured
+        # Not sorting anymore because input could potentially not be in increasing Wavelength, and want to make sure we grab the right EW, Flux Ratios for the corresponding Wavelength
+        self._emis_lines = self._flux_ratios['Wavelength']
+        # self._emis_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:-1]  # [1:] to remove the duplicate ~3890 wavelength; [:-1] to remove Pg
 
         # Measured data from spectra
         self._EWs_meas = np.array(self._flux_ratios['EW'])
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
-        self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
-        #self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+        try:
+            self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+        except:
+            self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
         self._x = np.zeros(self._y.size)
 
         # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -63,10 +66,12 @@ class MCMCgal:
         xi = 10 ** log_xi
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
-        #EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-        #                         self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
-        EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
-                                 0.01*self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+        try:
+            EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+                                 self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
+        except:
+            EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
+                                 0.1*self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
         h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
@@ -75,7 +80,7 @@ class MCMCgal:
 #        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
-        model_flux = np.ones(self._y.size)  # emission lines we want to model
+        model_flux = np.zeros(self._y.size)  # emission lines we want to model
 
         # Some values, calculated at Hbeta, for later use in model flux
         collisional_to_recomb_Hbeta = 0.  # mfr.hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
@@ -179,9 +184,7 @@ class MCMCgal:
 
                 # Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
                 flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
-#            elif nearest_wave == 4862.721:
-#                # Don't need to calculate Hbeta?
-#                continue
+
             else:
                 print ('Check your input wavelength -- not a recognized hydrogen or helium line for MCMC analysis')
                 pdb.set_trace()
