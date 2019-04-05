@@ -312,11 +312,11 @@ if __name__ == "__main__":
     # The allowed names
     names = ["IZw18SE1", "SBS0335-052E1", "SBS0335-052E3", "J0519+0007", "SBS0940+5442", "Tol65", "SBS1415+437No13",
              "SBS1415+437No2", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59",
-             "SBS1135+581", "Mrk450No1", "Test"]
+             "SBS1135+581", "Mrk450No1"]
 
     # Set which galaxy to run
-    #rungal = "all"
-    rungal = "Test"
+    rungal = "all"
+    #rungal = "Test"
     #rungal = "SBS0940+5442"
     #rungal = "CGCG007-025No2"
 
@@ -343,7 +343,7 @@ if __name__ == "__main__":
                 galfail += [gal]
         print("The following galaxies failed:\n" + "\n".join(galfail))
     else:
-        if rungal in names:
+        if rungal in names or rungal == "Test":
             MCMCgal(rungal)
         else:
             print("Invalid Galaxy name. Select one of the following:\n" + "\n".join(names))
