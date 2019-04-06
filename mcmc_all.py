@@ -16,7 +16,8 @@ class MCMCgal:
         self._T_OIII = galdict["T_OIII"]
 
         # Read in measured data (wavelength, flux ratios, and EWs)
-        self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC
+        self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
+        #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
 
         # Names of wavelenghts of interest for MCMC
         self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
@@ -26,10 +27,11 @@ class MCMCgal:
         # Want to include HeI5017 to allow for it if the measurement exists
         self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 
+        self._allowed_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:]  # [1:] to remove the duplicate ~3890 wavelength
+
         # Wavelengths we care about for MCMC, based on what is given in the input flux file (concatenating self._hydrogen_lines and self._helium_lines means some emlines could be mistakenly modeled even though they are not measured
         # Not sorting anymore because input could potentially not be in increasing Wavelength, and want to make sure we grab the right EW, Flux Ratios for the corresponding Wavelength
         self._emis_lines = self._flux_ratios['Wavelength']
-        # self._emis_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:-1]  # [1:] to remove the duplicate ~3890 wavelength; [:-1] to remove Pg
 
         # Measured data from spectra
         self._EWs_meas = np.array(self._flux_ratios['EW'])
@@ -89,11 +91,10 @@ class MCMCgal:
 
         done_3889 = False
         for w in range(len(self._emis_lines)):
-            # Determine if working with hydrogen or helium line; within 3 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
-            nearest_wave = self._emis_lines[np.where(np.abs(self._emis_lines - self._emis_lines[w]) < 3)[0]][0]
-            #nearest_wave = self._emis_lines[np.argmin(np.abs(self._emis_lines - self._emis_lines[w]))]
+            # Determine if working with hydrogen or helium line; within 3.5 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
+            nearest_wave = self._allowed_lines[np.where(np.abs(self._allowed_lines - self._emis_lines[w]) < 3.5)[0]][0]
             # The above line is redundant for my input waves, but allows for cases where emis_lines[w] is some other array, say waves_of_interest[w],
-            # and not exactly at the wavelengths given in the emis_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
+            # and not exactly at the wavelengths given in the allowed_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
 
             # Any Balmer line besides the blended HeI+H8 line (H8 at 3890.166) and P-gamma
             if nearest_wave in self._hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:# and nearest_wave != 4862.721:
