@@ -11,7 +11,10 @@ import pdb
 class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
-        galdict = galaxy.load_AOS2015(self.galaxyname)
+
+        #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
+        galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
+        
         self._full_tbl = galdict["full_tbl"]
         self._T_OIII = galdict["T_OIII"]
 
@@ -20,7 +23,7 @@ class MCMCgal:
         #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
 
         # Names of wavelenghts of interest for MCMC
-        self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+        # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
         # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
@@ -316,8 +319,8 @@ if __name__ == "__main__":
              "SBS1135+581", "Mrk450No1"]
 
     # Set which galaxy to run
-    rungal = "all"
-    #rungal = "Test"
+    #rungal = "all"
+    rungal = "Test"
     #rungal = "SBS0940+5442"
     #rungal = "CGCG007-025No2"
 
