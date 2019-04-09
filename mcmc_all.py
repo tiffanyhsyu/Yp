@@ -61,7 +61,7 @@ class MCMCgal:
 
         # Reparameterize density and neutral hydrogen input
         dens = 10 ** log_dens
-        xi = 10 ** log_xi
+        xi = 10 ** log_xi / 10.0**-4.0
 
         # Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
         EW_Hb = np.random.normal(self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0],
@@ -96,7 +96,7 @@ class MCMCgal:
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
-                collisional_to_recomb_ratio = 0.  # mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp)
+                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp)
                 reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
 
                 #			flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \

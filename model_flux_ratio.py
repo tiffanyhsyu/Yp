@@ -102,19 +102,19 @@ for t in range(len(np.arange(5000, 26000, 1000))):
                                                           np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
 # Linear
-S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
-S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
-S2018_hg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
-S2018_hd_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
-S2018_h8_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
-S2018_pg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), ha_RBS, kx=1, ky=1)
+S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hb_RBS, kx=1, ky=1)
+S2018_hg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hg_RBS, kx=1, ky=1)
+S2018_hd_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hd_RBS, kx=1, ky=1)
+S2018_h8_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), h8_RBS, kx=1, ky=1)
+S2018_pg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), pg_RBS, kx=1, ky=1)
 # Cubic
-S2018_ha_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
-S2018_hb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
-S2018_hg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
-S2018_hd_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
-S2018_h8_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
-S2018_pg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+S2018_ha_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), ha_RBS, kx=3, ky=3)
+S2018_hb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hb_RBS, kx=3, ky=3)
+S2018_hg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hg_RBS, kx=3, ky=3)
+S2018_hd_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), hd_RBS, kx=3, ky=3)
+S2018_h8_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), h8_RBS, kx=3, ky=3)
+S2018_pg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0**np.arange(0,6), pg_RBS, kx=3, ky=3)
 
 def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
     '''
@@ -278,26 +278,26 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 #HeI10833_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=3, ky=3)
 # ------
 # Interpolated Porter HeI emissivities on finer mesh, from AOPS 2013; T=10000-22000, log(n_e)=0-4
-dens_finemesh = np.array(np.unique(helium_finemesh_emis['log n_e']))
+dens_finemesh = 10.0**np.array(np.unique(helium_finemesh_emis['log n_e']))
 temp_finemesh = np.arange(10000, 22250, step=250)
 # Linear
-HeI3889_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['3889A'].reshape((31, 49)), kx=1, ky=1)
-HeI4026_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4026A'].reshape((31, 49)), kx=1, ky=1)
-HeI4471_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4471A'].reshape((31, 49)), kx=1, ky=1)
-HeI5016_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['5016A'].reshape((31, 49)), kx=1, ky=1)
-HeI5876_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['5876A'].reshape((31, 49)), kx=1, ky=1)
-HeI6678_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['6678A'].reshape((31, 49)), kx=1, ky=1)
-HeI7065_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['7065A'].reshape((31, 49)), kx=1, ky=1)
-HeI10833_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['10830A'].reshape((31, 49)), kx=1, ky=1)
+HeI3889_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['3889A'].reshape((31, 49)), kx=1, ky=1)
+HeI4026_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['4026A'].reshape((31, 49)), kx=1, ky=1)
+HeI4471_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['4471A'].reshape((31, 49)), kx=1, ky=1)
+HeI5016_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['5016A'].reshape((31, 49)), kx=1, ky=1)
+HeI5876_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['5876A'].reshape((31, 49)), kx=1, ky=1)
+HeI6678_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['6678A'].reshape((31, 49)), kx=1, ky=1)
+HeI7065_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['7065A'].reshape((31, 49)), kx=1, ky=1)
+HeI10833_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['10830A'].reshape((31, 49)), kx=1, ky=1)
 # Cubic
-HeI3889_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['3889A'].reshape((31, 49)), kx=3, ky=3)
-HeI4026_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4026A'].reshape((31, 49)), kx=3, ky=3)
-HeI4471_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4471A'].reshape((31, 49)), kx=3, ky=3)
-HeI5016_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['5016A'].reshape((31, 49)), kx=3, ky=3)
-HeI5876_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['5876A'].reshape((31, 49)), kx=3, ky=3)
-HeI6678_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['6678A'].reshape((31, 49)), kx=3, ky=3)
-HeI7065_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['7065A'].reshape((31, 49)), kx=3, ky=3)
-HeI10833_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['10830A'].reshape((31, 49)), kx=3, ky=3)
+HeI3889_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['3889A'].reshape((31, 49)), kx=3, ky=3)
+HeI4026_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['4026A'].reshape((31, 49)), kx=3, ky=3)
+HeI4471_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['4471A'].reshape((31, 49)), kx=3, ky=3)
+HeI5016_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['5016A'].reshape((31, 49)), kx=3, ky=3)
+HeI5876_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['5876A'].reshape((31, 49)), kx=3, ky=3)
+HeI6678_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['6678A'].reshape((31, 49)), kx=3, ky=3)
+HeI7065_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['7065A'].reshape((31, 49)), kx=3, ky=3)
+HeI10833_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['10830A'].reshape((31, 49)), kx=3, ky=3)
 
 def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
     '''
@@ -340,43 +340,43 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
         print ('Not ready for this helium line!')
         pdb.set_trace()
 
-    logdens = np.log10(dens)
+    logdens = dens#np.log10(dens)
 
     # Temperature and density fall within finer parametric mesh
     if deg == 'linear':
         if HeI_line == '3889':
-            HeI_emis = 10 ** HeI3889_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI3889_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '4026':
-            HeI_emis = 10 ** HeI4026_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI4026_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '4471':
-            HeI_emis = 10 ** HeI4471_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI4471_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '5016':
-            HeI_emis = 10 ** HeI5016_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI5016_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '5876':
-            HeI_emis = 10 ** HeI5876_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI5876_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '6678':
-            HeI_emis = 10 ** HeI6678_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI6678_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '7065':
-            HeI_emis = 10 ** HeI7065_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI7065_finemesh_lin(logdens, temp)[0][0]
         elif HeI_line == '10833':
-            HeI_emis = 10 ** HeI10833_finemesh_lin(logdens, temp)[0][0]
+            HeI_emis = HeI10833_finemesh_lin(logdens, temp)[0][0]
     elif deg == 'cubic':
         if HeI_line == '3889':
-            HeI_emis = 10 ** HeI3889_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI3889_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '4026':
-            HeI_emis = 10 ** HeI4026_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI4026_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '4471':
-            HeI_emis = 10 ** HeI4471_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI4471_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '5016':
-            HeI_emis = 10 ** HeI5016_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI5016_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '5876':
-            HeI_emis = 10 ** HeI5876_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI5876_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '6678':
-            HeI_emis = 10 ** HeI6678_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI6678_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '7065':
-            HeI_emis = 10 ** HeI7065_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI7065_finemesh_cubic(logdens, temp)[0][0]
         elif HeI_line == '10833':
-            HeI_emis = 10 ** HeI10833_finemesh_cubic(logdens, temp)[0][0]
+            HeI_emis = HeI10833_finemesh_cubic(logdens, temp)[0][0]
     else:
         print ('Not ready for this degree of interpolation!')
         pdb.set_trace()
@@ -384,9 +384,9 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
     # Calculate Hbeta emissivity for a ratio
     if ratio == 'storey':
         if deg == 'linear':
-            Hbeta_emis = S2018_hb_lin(temp, np.log10(dens))[0][0]
+            Hbeta_emis = S2018_hb_lin(temp, dens)[0][0]
         elif deg == 'cubic':
-            Hbeta_emis = S2018_hb_cubic(temp, np.log10(dens))[0][0]
+            Hbeta_emis = S2018_hb_cubic(temp, dens)[0][0]
     elif ratio == 'porter':
         # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
         Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
@@ -750,7 +750,7 @@ def optical_depth_function(wave, temp, dens, tau):
     tidx = np.where(np.abs(helium_optical_depth['Wave'] - wave) < 3.5)[0]
     idx = tidx[0]
     if len(tidx) == 0:
-        # HeI5017 is not on the helium_optical_depth table, but its optical depth is 1
+        # HeI5017 is not on the helium_optical_depth table, but its optical depth is 0
         if np.abs(5017.079 - wave) < 3.5:
             f_tau = 1
         else:
@@ -829,7 +829,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
     Keff_alphaeff = 0.
     for i in range(1, 9): # 1-9 here is to grab the 'Term1', 'Term2', etc. column names
         a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
-        Keff_alphaeff += (a * np.exp(b/ T4) * (T4 ** c))
+        Keff_alphaeff += (a * np.exp(b / T4) * (T4 ** c))
 
     # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
     hydrogen_CR = Keff_alphaeff * xi
