@@ -12,8 +12,8 @@ class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
 
-        #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
-        galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
+        galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
+        #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
         
         self._full_tbl = galdict["full_tbl"]
         self._T_OIII = galdict["T_OIII"]
@@ -120,7 +120,8 @@ class MCMCgal:
             elif nearest_wave in self._helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
                 line_species = 'helium'
 
-                emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                #emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                emissivity_ratio = mfr.helium_emissivity_PFM2007(self._emis_lines[w], temp)
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
                 reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
@@ -139,7 +140,8 @@ class MCMCgal:
                 # HeI 3890.151 contribution:
                 line_species = 'helium'
 
-                emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                #emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                emissivity_ratio = mfr.helium_emissivity_PFM2007(self._emis_lines[w], temp)
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
 
@@ -175,7 +177,8 @@ class MCMCgal:
                 # Theoretical F(HeI10830)/F(Hbeta) ratio
                 line_species = 'helium'
 
-                emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                #emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                emissivity_ratio = mfr.helium_emissivity_PFM2007(self._emis_lines[w], temp)
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
                 reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
@@ -319,8 +322,8 @@ if __name__ == "__main__":
              "SBS1135+581", "Mrk450No1"]
 
     # Set which galaxy to run
-    #rungal = "all"
-    rungal = "Test"
+    rungal = "all"
+    #rungal = "Test"
     #rungal = "SBS0940+5442"
     #rungal = "CGCG007-025No2"
 
