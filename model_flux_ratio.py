@@ -299,7 +299,7 @@ HeI6678_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh
 HeI7065_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['7065A'].reshape((31, 49)), kx=3, ky=3)
 HeI10833_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 10.0**helium_finemesh_emis['10830A'].reshape((31, 49)), kx=3, ky=3)
 
-def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
+def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
     '''
     Calculate the emissivity of a HeI line
     using Porter's 2013 fine mesh emissivities
