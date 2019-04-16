@@ -32,6 +32,7 @@ class MCMCgal:
 
         # Measured data from spectra
         self._EWs_meas = np.array(self._flux_ratios['EW'])
+        print(galaxyname, self._EWs_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
         #self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
@@ -145,7 +146,7 @@ class MCMCgal:
 
             # Infrared HeI10830 line
             elif nearest_wave == 10833.306:
-                if True:
+                if False:
                     # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
                     line_species = 'hydrogen'
 

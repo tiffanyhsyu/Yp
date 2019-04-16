@@ -396,6 +396,7 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
 
     return HeI_emis / Hbeta_emis
 
+
 def helium_emissivity_coarse_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
     '''
     Calculate the emissivity of a HeI line
@@ -808,6 +809,8 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
     '''
     # Redefine the temperature
     T4 = temp / 10000.
+
+    #xi /= 1.0e-4
 
     # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
     idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]

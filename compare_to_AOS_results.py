@@ -50,7 +50,11 @@ for gg, galname in enumerate(names):
 
     # Plot the emission lines
     xplt = np.arange(mcmc_inst._y.size)
-    ax[cntx, cnty].plot(xplt, (mcmc_inst._y-model_flux)/mcmc_inst._y, 'bx')
+    #ax[cntx, cnty].plot(xplt, (mcmc_inst._y-model_flux)/mcmc_inst._y, 'bx')
+    ax[cntx, cnty].plot(xplt, (mcmc_inst._y - model_flux) / model_flux, 'bx')
+    ax[cntx, cnty].errorbar(xplt, (mcmc_inst._y - model_flux) / model_flux, mcmc_inst._y_error/model_flux, fmt='', ecolor='b')
+    ax[cntx, cnty].axhline(0.0, color='k')
+    ax[cntx, cnty].set_title(galname)
 #    ax[gg].plot(xplt, model_flux, 'rx')
     ax[cntx, cnty].set_xticks(xplt)
     #ax[1].plot(xplt, (mcmc_inst._y-model_flux)/mcmc_inst._y, 'bx')
@@ -84,6 +88,10 @@ plt.clf()
 wrongidx = [3, 7]  # These indices are both wrong, and in the same direction
 oppidx = [5, 8]  # These indices have He I 4027 and 4472 wrong (but in the opposite way)
 cntr = 0
+# b CGCG007-025No2
+# b SBS1152+579
+# g SBS1030+583
+# r Mrk59
 for gg, galname in enumerate(names):
     fail = False
     try:
@@ -100,6 +108,7 @@ for gg, galname in enumerate(names):
         col = 'r'
     # Plot the data
     idx = np.where(objnames == galname)[0][0]
+    print(col, galname)
     plotpar(1, yp[idx], yp[idx], yp_p[idx], yp_m[idx], color=col)
     plotpar(2, yp[idx], dens[idx], dens_p[idx], dens_m[idx], color=col)
     plotpar(3, yp[idx], aHe[idx], aHe_p[idx], aHe_m[idx], color=col)

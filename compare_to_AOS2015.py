@@ -46,6 +46,7 @@ plotpar(8, xi, xi_p, xi_e)
 ourres = Table.read('all_output', format='ascii', delimiter=' ')
 
 our_objnames = ourres['Object']
+pdb.set_trace()
 
 xplt = []
 for ii in range(our_objnames.size):
@@ -76,4 +77,14 @@ plt.show()
 
 plt.clf()
 plt.plot(aos_dens[(xplt,)], (aos_yp[(xplt,)]-yp)/yp, 'bx')
+plt.show()
+
+#EWs_plt = np.array([135.6, 241.1, 172.8, 204.3, 224.1, 92.6, 357.1, 189.3, 157.9, 119.5, 273.6])
+#print(objnames[(xplt,)])
+#print("IZw18SE1", "SBS0940+5442", "Tol65", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59", "SBS1135+581", "Mrk450No1")
+# This is hardcoded, so may not be correct
+EWs_plt = np.array([135.6, 241.1, 172.8, 204.3, 92.6, 189.3, 157.9, 119.5, 273.6])
+
+plt.clf()
+plt.plot(EWs_plt, (aos_yp[(xplt,)]-yp)/yp, 'bx')
 plt.show()
