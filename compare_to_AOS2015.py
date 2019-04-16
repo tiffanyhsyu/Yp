@@ -15,6 +15,8 @@ def plotpar(num, pcen, ppos, pneg, shft=0.1, xplt=None):
         color = 'r'
     plt.plot(xplt - shft, pcen, color+'x')
     plt.errorbar(xplt - shft, pcen, yerr=np.vstack((pneg, ppos)), linestyle='None', color=color)
+    lab = ['yp', 'ne', 'aHe', 'tauHe', 'Te', 'C(Hb)', 'aH', 'xi']
+    plt.ylabel(lab[num-1])
     return
 
 # Load in AOS2015 output results
@@ -32,6 +34,9 @@ xi, xi_p, xi_e = aos2015['xi'], aos2015['xi_p'], -aos2015['xi_m']
 
 aos_yp, aos_dens = yp.copy(),  dens.copy()
 
+for ii in range(objnames.size):
+    print(ii, "=", objnames[ii])
+
 # Plot all of the data
 plotpar(1, yp, yp_p, yp_e)
 plotpar(2, dens, dens_p, dens_e)
@@ -46,7 +51,6 @@ plotpar(8, xi, xi_p, xi_e)
 ourres = Table.read('all_output', format='ascii', delimiter=' ')
 
 our_objnames = ourres['Object']
-pdb.set_trace()
 
 xplt = []
 for ii in range(our_objnames.size):
