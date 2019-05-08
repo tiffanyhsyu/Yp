@@ -1112,7 +1112,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
                 #### Testing S2018 emissivities *PLUS* C/R
-                collisional_to_recomb_factor = np.exp( (-13.6*(-19/150)) / (8.6173303e-5*temp) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
+                collisional_to_recomb_factor = np.exp( ( -13.6 * (-19/150) ) / ( 8.6173303e-5 * temp ) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
                 collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
 
                 Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
