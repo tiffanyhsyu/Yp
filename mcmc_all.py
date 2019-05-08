@@ -174,7 +174,7 @@ class MCMCgal:
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
                 #### Testing S2018 emissivities *PLUS* C/R...
-                collisional_to_recomb_factor = np.exp(( -13.6 * (-19/150)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(Pg)
+                collisional_to_recomb_factor = np.exp( ( -13.6 * (-19/150)) / (8.6173303e-5 * temp) ) # scale factor for going from C/R(Hg) to C/R(Pg)
                 collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
                 ####
                 #collisional_to_recomb_ratio = 0.
