@@ -892,6 +892,7 @@ def helium_collision_to_recomb(wave, temp, dens):
 #f_lambda_avg_old = Table.read(path+'/tables/average_extinction_curve', format='ascii', delimiter=' ')
 #f_lambda_avg_interp_old = interp.interp1d(f_lambda_avg_old['wavelength'], f_lambda_avg_old['X(x)'])
 
+# Fine interpolation
 f_lambda_avg = Table.read(path+'/tables/extinction_table', format='ascii', delimiter=' ')
 f_lambda_avg_interp = interp.interp1d(f_lambda_avg['wavelength'], f_lambda_avg['X(x)'])
 
@@ -1110,10 +1111,20 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 a_H_at_wave = stellar_absorption(10941.082, a_H, ion=line_species)
                 reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
-                # Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
+                #### Testing S2018 emissivities *PLUS* C/R
+                collisional_to_recomb_factor = np.exp( (-13.6*(-19/150)) / (8.6173303e-5*temp) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
+                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+
                 Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
-                                ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
+                                ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
                                 10**-(reddening_function * c_Hb)
+                #### 
+
+                # Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
+                #Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
+                #                ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
+                #                10**-(reddening_function * c_Hb)
+
 
                 # Now, theoretical F(HeI10830)/F(Hbeta) ratio
                 line_species = 'helium'
