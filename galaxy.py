@@ -71,7 +71,8 @@ def load_AOS2015(galaxyname):
         T_OIII = 11700#11600.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
     elif galaxyname == "Test":
-        gname = 'test_output_flux_nir'
+        #gname = 'test_output_flux_nir'
+	gname = 'test_output_flux'
         T_OIII = 18000
         full_tbl = Table.read(os.getcwd() + '/' + gname, format='ascii', delimiter=' ')
     else:

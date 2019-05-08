@@ -333,8 +333,8 @@ if __name__ == "__main__":
              "SBS1135+581", "Mrk450No1"]
 
     # Set which galaxy to run
-    rungal = "all"
-    #rungal = "Test"
+    #rungal = "all"
+    rungal = "Test"
     #rungal = "SBS0940+5442"
     #rungal = "CGCG007-025No2"
 
