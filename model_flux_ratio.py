@@ -299,7 +299,7 @@ HeI6678_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh
 HeI7065_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['7065A'].reshape((31, 49)), kx=3, ky=3)
 HeI10833_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['10830A'].reshape((31, 49)), kx=3, ky=3)
 
-def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
+def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
     '''
     Calculate the emissivity of a HeI line
     using Porter's 2013 fine mesh emissivities
@@ -382,15 +382,15 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='storey'):
         pdb.set_trace()
 
     # Calculate Hbeta emissivity for a ratio
-    if ratio == 'storey':
+    if ratio == 'porter':
+        # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
+        Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
+                     * (1 / temp) * 1e-25
+    elif ratio == 'storey':
         if deg == 'linear':
             Hbeta_emis = S2018_hb_lin(temp, np.log10(dens))[0][0]
         elif deg == 'cubic':
             Hbeta_emis = S2018_hb_cubic(temp, np.log10(dens))[0][0]
-    elif ratio == 'porter':
-        # H beta emissivity; from Equation 3.1 of Citation (3) AOS 2010
-        Hbeta_emis = (-2.6584e5 - (1420.9 * (np.log(temp) ** 2.)) + (35546 * np.log(temp)) + (6.5669e5 / np.log(temp))) \
-                     * (1 / temp) * 1e-25
     else:
         print ('Not prepared for this method of H-beta emissivity')
 
@@ -832,7 +832,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
         Keff_alphaeff += (a * np.exp(b/ T4) * (T4 ** c))
 
     # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
-    hydrogen_CR = Keff_alphaeff * xi
+    hydrogen_CR = Keff_alphaeff * xi * 1e4
 
     return hydrogen_CR
 
@@ -1002,7 +1002,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
     xi = 10**log_xi
 
     if hydrogen_method == 'S2018':
-        collisional_to_recomb_Hbeta = 0.
+        #### Testing S2018 emissivities *PLUS* C/R...
+        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
+        ####
+        #collisional_to_recomb_Hbeta = 0.
     elif hydrogen_method == 'HS1987':
         collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
 
@@ -1020,7 +1023,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
 
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
-                collisional_to_recomb_ratio = 0. # S2018 includes C/R
+                #### Testing S2018 emissivities *PLUS* C/R...
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp)
+                ####
+                #collisional_to_recomb_ratio = 0. # S2018 includes C/R
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R
@@ -1074,7 +1080,11 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
 
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
-                collisional_to_recomb_ratio = 0. # S2018 includes C/R
+                ####
+                collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
+                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+                ####
+                #collisional_to_recomb_ratio = 0. # S2018 includes C/R
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
                 collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
