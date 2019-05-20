@@ -820,6 +820,8 @@ def hydrogen_collision_to_recomb(xi, wave, temp):
         line = str('Hg')
     elif idx == 4:
         line = str('Hd')
+    elif idx == 5:
+        line = ('H8')
     #    print ('Hydrogen C/R for', line)
 
     rows = np.where(line == hydrogen_CR_coeff['Line'])[0]
@@ -852,7 +854,7 @@ def helium_collision_to_recomb(wave, temp, dens):
     Parameters
     ----------
     wave : float
-        Wavelength of the Balmer line (in Angstroms)
+        Wavelength of the HeI line (in Angstroms)
     temp : float
         Temperature of the gas (in Kelvin)
     dens : float
@@ -1082,8 +1084,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
                 ####
-                collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
-                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+                #collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
+                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+                # Adding H8 to the table using calculated ratio
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp)
                 ####
                 #collisional_to_recomb_ratio = 0. # S2018 includes C/R
             elif hydrogen_method == 'HS1987':
