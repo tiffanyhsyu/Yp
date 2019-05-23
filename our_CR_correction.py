@@ -113,6 +113,15 @@ print ('C/R(Halpha): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1],
 print ('C/R(Hbeta): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T))
 print ('C/R(Hgamma): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T))
 
+plotit = True
+if plotit:
+    T = np.linspace(1.0E4, 2.5E4, 1000)
+    from matplotlib import pyplot as plt
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1], T), 'r-')
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T), 'm-')
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T), 'g-')
+    plt.show()
+
 print ('Compared to Raga et al. (2015):')
 
 hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
