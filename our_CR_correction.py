@@ -1,3 +1,4 @@
+import pdb
 import numpy as np
 import model_flux_ratio as mfr
 
@@ -9,7 +10,7 @@ import model_flux_ratio as mfr
 kB = 8.61733e-5
 
 def eV_to_K(eV):
-    temp = eV * (1/kB)
+    temp = eV * (1 / kB)
     return temp
 
 # Anderson et al. 2002 gives Gamma values at given electron temperatures...
@@ -30,13 +31,13 @@ G_Hb = np.array([2.55e-2, 4.79e-2, 3.19e-2, 1.14e-2, 1.72e-2, 3.15e-2, 2.22e-2, 
 G_Hg = np.array([1.72e-2, 3.15e-2, 2.22e-2, 9.14e-3, 4.03e-3])
 
 # Branching Ratios from Table 2 of Omidvar 1983
-BR_Ha = np.array([1.0, 1.0, 1.0, 4.16e-1, 4.20e-2, 2.54e-1, 1.0]) # last 4 are from 40,41,42,43 --> 3 
-BR_Hb = np.array([1.0, 1.0, 1.0, 1.0, 2.27e-1, 2.20e-2, 1.07e-1, 3.63e-1, 1.0]) # last 5 are from 50,51,52,53,54 --> 4
+BR_Ha = np.array([1.0, 1.0, 1.0, 4.16e-1, 4.20e-2, 2.54e-1, 1.0])  # last 4 are from 40,41,42,43 --> 3
+BR_Hb = np.array([1.0, 1.0, 1.0, 1.0, 2.27e-1, 2.20e-2, 1.07e-1, 3.63e-1, 1.0])  # last 5 are from 50,51,52,53,54 --> 4
 BR_Hg = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
 
 def calculate_CR(gamma, branching_ratio, temp, eta, line):
     kB = 8.61733e-5
-    
+
     # Recombination rate and scaling factors from H&S 1987
     # Taking T=10000K, n_e=100 for now to be close to T=11604.522, on p.59
     #### Eventually need to interpolate based on T, n_e
@@ -53,12 +54,46 @@ def calculate_CR(gamma, branching_ratio, temp, eta, line):
         i = np.array([5, 5, 5, 5, 5])
     else:
         print ('Not ready for this hydrogen transition')
-        
-    K = 4.004e-8 * np.sqrt( 1/(kB*temp) ) * np.exp(-13.6*(1-(1/i**2))/(kB*temp)) * gamma
+
+    print("Erik", np.sum(gamma*branching_ratio))
+    K = 4.004e-8 * np.sqrt(1 / (kB * temp)) * np.exp(-13.6 * (1 - (1 / i ** 2)) / (kB * temp)) * gamma
     numerator = K * branching_ratio
-    CR = eta * np.sum(numerator) / (recomb_42*scale)
-    
+    CR = eta * np.sum(numerator) / (recomb_42 * scale)
+
     return CR
+
+
+def colrate_raga(eta, T, line):
+    kB = 8.61733e-5
+    if line == 'Ha':
+        i = 3
+        acoeffs = np.array([0.2500, 0.2461, 0.3297, 0.3892, -0.0928, 0.0071])
+        bcoeffs = np.array([-13.3377, -0.7161, -0.1435, -0.0386, 0.0077])
+    elif line == 'Hb':
+        i = 4
+        acoeffs = np.array([0.1125, 0.1370, -0.1152, 0.1209, -0.0276, 0.0020])
+        bcoeffs = np.array([-13.5225, -0.7928, -0.1749, -0.0412, 0.0154])
+    elif line == 'Hg':
+        i = 5
+        acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
+        bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+    else:
+        print("Line not ready yet")
+    ediff = -13.6 * (1 - (1 / i ** 2))
+    tval = np.log10(T/1.0E4)
+    omega1k = np.zeros(tval.size)
+    for aa in range(acoeffs.size):
+        omega1k += acoeffs[aa] * tval**aa
+    print("Raga", omega1k)
+    # Note 4.004E-8/np.sqrt(kB) = 0.5 * 8.629E-6  (i.e. Erik = Raga for the coefficient)
+    q1k = 0.5 * 8.629E-6 * omega1k * np.exp(ediff/(kB*T)) / np.sqrt(T)
+    alphak = np.zeros(tval.size)
+    for aa in range(bcoeffs.size):
+        alphak += bcoeffs[aa] * tval**aa
+    alphak = 10.0**(alphak)
+    CR = eta * q1k/alphak
+    return CR
+
 
 eta = 1e-2
 print ('For eta =', eta)
@@ -74,3 +109,23 @@ hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 38
 print ('C/R(Halpha): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1], T))
 print ('C/R(Hbeta): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T))
 print ('C/R(Hgamma): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T))
+
+plotit = True
+if plotit:
+    T = np.linspace(1.0E4, 2.5E4, 1000)
+    from matplotlib import pyplot as plt
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1], T), 'r-')
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T), 'm-')
+    plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T), 'g-')
+    plt.plot(T, colrate_raga(eta, T, 'Ha'), 'r-', ls='--')
+    plt.plot(T, colrate_raga(eta, T, 'Hb'), 'm-', ls='--')
+    plt.plot(T, colrate_raga(eta, T, 'Hg'), 'g-', ls='--')
+    plt.show()
+
+print ('Compared to Raga et al. (2015):')
+
+hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
+
+print ('C/R(Halpha): ', colrate_raga(eta, T, 'Ha'))
+print ('C/R(Hbeta): ', colrate_raga(eta, T, 'Hb'))
+print ('C/R(Hgamma): ', colrate_raga(eta, T, 'Hg'))
