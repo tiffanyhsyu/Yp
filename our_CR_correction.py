@@ -1,6 +1,23 @@
 import pdb
+import os
 import numpy as np
+from functools import reduce
+from astropy.table import Table
+import astropy.constants as const
+import astropy.units as u
 import model_flux_ratio as mfr
+import scipy.interpolate as interp
+from matplotlib import pyplot as plt
+
+path = os.getcwd()
+hydrogen_emis = Table.read(path + '/tables/hydrogen_emissivity_S2018', format='ascii', delimiter='\t')
+ha_RBS = np.zeros((21, 6))
+for t in range(len(np.arange(5000, 26000, 1000))):
+    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), 10.0 ** np.arange(0, 6), ha_RBS, kx=1, ky=1)
+
 
 ## Effective collision strengths, Gamma, from Anderson et al. 2002: https://iopscience.iop.org/article/10.1088/0953-4075/35/6/701
 # a correction of Anderson et al. 2000: https://iopscience.iop.org/article/10.1088/0953-4075/33/6/311/pdf
@@ -58,12 +75,19 @@ def calculate_CR(gamma, branching_ratio, temp, eta, line):
     else:
         print ('Not ready for this hydrogen transition')
 
-    print("Erik", np.sum(gamma*branching_ratio))
+    #print("Erik", np.sum(gamma*branching_ratio))
     K = 4.004e-8 * np.sqrt(1 / (kB * temp)) * np.exp(-13.6 * (1 - (1 / i ** 2)) / (kB * temp)) * gamma
     numerator = K * branching_ratio
-    CR = eta * np.sum(numerator) / (recomb_42 * scale)
+    CRa = eta * np.sum(numerator) / (recomb_42 * scale)
 
-    return CR
+    # Try the emissivity
+    HaEnergy = (const.h * (299792458.0*u.m/u.s/(6563.0*u.AA))).to(u.erg)
+    dens = 1.0
+    logdens = np.log10(dens)
+    alphak = S2018_ha_lin(T, logdens).flatten() / HaEnergy.value
+    CRb = eta * np.sum(numerator) / alphak
+
+    return CRb
 
 
 def colrate_raga(eta, T, line):
@@ -87,7 +111,7 @@ def colrate_raga(eta, T, line):
     omega1k = np.zeros(tval.size)
     for aa in range(acoeffs.size):
         omega1k += acoeffs[aa] * tval**aa
-    print("Raga", omega1k)
+    #print("Raga", omega1k)
     # Note 4.004E-8/np.sqrt(kB) = 0.5 * 8.629E-6  (i.e. Erik = Raga for the coefficient)
     q1k = 0.5 * 8.629E-6 * omega1k * np.exp(ediff/(kB*T)) / np.sqrt(T)
     alphak = np.zeros(tval.size)
@@ -95,6 +119,14 @@ def colrate_raga(eta, T, line):
         alphak += bcoeffs[aa] * tval**aa
     alphak = 10.0**(alphak)
     CR = eta * q1k/alphak
+
+    # Try the emissivity
+    HaEnergy = (const.h * (299792458.0*u.m/u.s/(6563.0*u.AA))).to(u.erg)
+    dens = 1.0
+    logdens = np.log10(dens)
+    alphak = S2018_ha_lin(T, logdens).flatten() / HaEnergy.value
+    CR = eta * q1k / alphak
+
     return CR
 
 
@@ -113,10 +145,9 @@ print ('C/R(Halpha): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1],
 print ('C/R(Hbeta): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T))
 print ('C/R(Hgamma): ', mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T))
 
-plotit = True
+plotit = False
 if plotit:
     T = np.linspace(1.0E4, 2.5E4, 1000)
-    from matplotlib import pyplot as plt
     plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1], T), 'r-')
     plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[2], T), 'm-')
     plt.plot(T, mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[3], T), 'g-')
@@ -126,15 +157,15 @@ print ('Compared to Raga et al. (2015):')
 
 hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
 
-print ('C/R(Halpha): ', colrate_raga(eta, T, 'Ha'))
-print ('C/R(Hbeta): ', colrate_raga(eta, T, 'Hb'))
-print ('C/R(Hgamma): ', colrate_raga(eta, T, 'Hg'))
+#print ('C/R(Halpha): ', colrate_raga(eta, T, 'Ha'))
+#print ('C/R(Hbeta): ', colrate_raga(eta, T, 'Hb'))
+#print ('C/R(Hgamma): ', colrate_raga(eta, T, 'Hg'))
 
 plotit = True
 if plotit:
     T = np.linspace(1.0E4, 2.5E4, 1000)
-    from matplotlib import pyplot as plt
+    plt.plot(T, 1.0E4*mfr.hydrogen_collision_to_recomb(eta, hydrogen_lines[1], T), 'k-')
     plt.plot(T, colrate_raga(eta, T, 'Ha'), 'r-')
-    plt.plot(T, colrate_raga(eta, T, 'Hb'), 'm-')
-    plt.plot(T, colrate_raga(eta, T, 'Hg'), 'g-')
+#    plt.plot(T, colrate_raga(eta, T, 'Hb'), 'm-')
+#    plt.plot(T, colrate_raga(eta, T, 'Hg'), 'g-')
     plt.show()
