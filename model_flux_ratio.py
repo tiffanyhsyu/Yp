@@ -777,7 +777,269 @@ def optical_depth_function(wave, temp, dens, tau):
 
 # Hydrogen
 # --------
-def hydrogen_collision_to_recomb(xi, wave, temp):
+#grid_temp_A2002 = np.array([5802.26125726, 11604.52251451, 34813.56754354, 58022.61257257, 116045.22514514, 174067.83771772, 232090.45029029, 290113.06286286])
+#upsilon_3s1s = np.array([0.0651, 0.0696, 0.0776])
+#upsilon_3p1s = np.array([0.112, 0.126, 0.186])
+#upsilon_3d1s = np.array([0.0621, 0.0658, 0.0782])
+#upsilon_4s1s = np.array([0.0223, 0.0255, 0.0319])
+#upsilon_4p1s = np.array([0.0402, 0.0479, 0.074])
+#upsilon_4d1s = np.array([0.03, 0.0319, 0.0404])
+#upsilon_4f1s = np.array([0.0123, 0.0114, 0.0105])
+#upsilon_5s1s = np.array([0.0145, 0.0172, 0.0192])
+#upsilon_5p1s = np.array([0.0269, 0.0315, 0.0404])
+#upsilon_5d1s = np.array([0.0208, 0.0222, 0.0247])
+#upsilon_5f1s = np.array([0.00919, 0.00914, 0.00952])
+#upsilon_5g1s = np.array([0.00466, 0.00403, 0.00285])
+upsilon_3s1s_coeff = np.array([0.00233701, -0.00334599,  0.04458994]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3s1s, 2)
+upsilon_3p1s_coeff = np.array([0.10184036, -0.75072221,  1.49488154]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3p1s, 2)
+upsilon_3d1s_coeff = np.array([0.01760335, -0.12551182,  0.28513044]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3d1s, 2)
+upsilon_4s1s_coeff = np.array([0.00357721, -0.01737304,  0.03701513]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_4s1s, 2)
+upsilon_4p1s_coeff = np.array([0.03742747, -0.26741176,  0.51648268]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_4p1s, 2)
+upsilon_4d1s_coeff = np.array([0.01478313, -0.10941403,  0.23239221]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_4d1s, 2)
+upsilon_4f1s_coeff = np.array([0.001418  , -0.0140902 ,  0.04524426]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_4f1s, 2)
+upsilon_5s1s_coeff = np.array([-0.00613942,  0.05702998, -0.11317503]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_5s1s, 2)
+upsilon_5p1s_coeff = np.array([0.00433421, -0.01864829,  0.03569204]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_5p1s, 2)
+upsilon_5d1s_coeff = np.array([0.000757  , -0.00127525,  0.01487691]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_5d1s, 2)
+upsilon_5f1s_coeff = np.array([0.00123696, -0.00984927,  0.02873762]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_5f1s, 2)
+upsilon_5g1s_coeff = np.array([-0.00048879,  0.00173353,  0.00505922]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_5g1s, 2)
+
+def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
+    '''
+    Calculate the factor that corrects the
+    measured hydrogen flux for emission due
+    to collisional excitation of neutral
+    hydrogen
+
+    Assumes that at these densities
+    and temperatures, all neutral hydrogen is
+    excited from the ground state
+
+    Uses collision strengths from Anderson
+    et al. 2002 and branching ratios from
+    Omidvar 1983. Recombination rates are
+    from Hummer & Storey 1987.
+
+    Parameters
+    ----------
+    xi : float
+        n(HI)/n(HII); ratio of neutral hydrogen
+        to ionized hydrogen densities
+    wave : float
+        Wavelength of the Balmer line (in Angstroms)
+    temp : float
+        Temperature of the gas (in Kelvin)
+    method : string (optional)
+        Method of calculating the C/R ratio;
+        options include
+        AOS2010:
+            - collision strength: Anderson et al. 2002
+            - branching ratio: ????
+            - recombination rate: Hummer & Storey 1987
+        R2015:
+            - collision strength: Chianti database
+            - recombination rate: Seaton 1959a
+        A2002:
+            - collision strength: Anderson et al. 2002
+            - branching ratio: Omidvar 1983
+            - recombination rate: Hummer & Storey 1987
+    Returns
+    -------
+    hydrogen_CR : float
+        Relative amount of collisional to
+        recombination emission for a given
+        hydrogen line:
+        C/R(wavelength) = eta*K_eff/alpha_eff
+    '''
+    # Boltzmann's constant
+    kB = 8.61733e-5
+    # Redefine the temperature
+    T4 = temp / 10000.
+
+    # Identify hydrogen line of interest
+    idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]
+
+    if method == 'AOS2010':
+        if idx == 0:
+            line = str('Pg')
+        elif idx == 1:
+            line = str('Ha')
+        elif idx == 2:
+            line = str('Hb')
+        elif idx == 3:
+            line = str('Hg')
+        elif idx == 4:
+            line = str('Hd')
+        elif idx == 5:
+            line = ('H8')
+        #    print ('Hydrogen C/R for', line)
+
+        rows = np.where(line == hydrogen_CR_coeff['Line'])[0]
+
+        # Calculate the total K_eff/alpha_eff for relevant energy levels -- collisional sum includes an infinite
+        # number of levels, but probabilities fall off quickly. This sum excludes terms contributing < 1%
+        Keff_alphaeff = 0.
+        for i in range(1, 9):  # 1-9 here is to grab the 'Term1', 'Term2', etc. column names
+            a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
+            Keff_alphaeff += (a * np.exp(b / T4) * (T4 ** c))
+
+        # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
+        hydrogen_CR = Keff_alphaeff * xi * 1e4
+
+    elif method == 'A2002':
+        print ('Using A+2002 collision strengths, O1983 branching ratios, HS1987 recombination rates')
+        grid_temp = np.array([5000., 7500., 10000., 12500., 15000., 20000., 30000.])
+        recomb_42 = np.array([5.380e-14, 3.863e-14, 3.022e-14, 2.482e-14, 2.105e-14, 1.610e-14,
+                              1.087e-14])  # Recombination rate for 4-->2 transition
+        #### ****************
+        #### May want to do a different type of interpolation in the future; right now at specific grid_temps, we are not recovering the exact recombination rate
+        #### ****************
+        if idx == 0: # Pgamma
+            # This would be the scaling from recomb_42 to Pgamma
+            # scale = np.array([9.87e-2, 9.39e-2, 9.04e-2, 8.77e-2, 8.56e-2, 8.23e-2, 7.79e-2])
+            # But instead we use Pbeta recombination scaling, branching ratio, collision strengths, then apply an Energy difference scaling factor to Pgamma
+            scale = np.array([1.84e-1, 1.72e-1, 1.63e-1, 1.57e-1, 1.52e-1, 1.45e-1, 1.36e-1])
+            i = np.array([5, 5, 5, 5, 5])
+            # Pbeta: 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
+            # 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
+            Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp)) # Energy difference b/t Pb and Pg
+            upsilon = np.array([])
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
+            branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        elif idx == 1:  # Halpha
+            # Recombination rate scaling factors from Hummer & Storey 1987
+            scale = np.array([3.04, 2.93, 2.86, 2.82, 2.79, 2.75, 2.70])
+            i = np.array([3, 3, 3, 4, 4, 4, 4])
+            # Collision strengths from Table 1 of Anderson et al. 2002
+            # Halpha: 1-->3s, 1-->3p, 1-->3d, 1-->4s, 1-->4p, 1-->4d, 1-->4f
+            # In A2000's definition of i and j, these correspond to: 1-->4, 1-->5, 1-->6, 1-->7, 1-->8, 1-->9, 1-->10
+            Ediff_factor = 1.
+            upsilon = np.array([np.polyval(upsilon_3s1s_coeff, np.log10(temp)), np.polyval(upsilon_3p1s_coeff, np.log10(temp)),
+                                np.polyval(upsilon_3d1s_coeff, np.log10(temp)),
+                                np.polyval(upsilon_4s1s_coeff, np.log10(temp)), np.polyval(upsilon_4p1s_coeff, np.log10(temp)),
+                                np.polyval(upsilon_4d1s_coeff, np.log10(temp)), np.polyval(upsilon_4f1s_coeff, np.log10(temp))])
+            # Branching Ratios from Table 2 of Omidvar 1983
+            branching_ratio = np.array([1.0, 1.0, 1.0, 4.16e-1, 4.2e-2, 2.54e-1, 1.0])  # last 4 are from 40,41,42,43 --> 3
+        elif idx == 2:  # Hbeta
+            scale = np.array([1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00])
+            i = np.array([4, 4, 4, 4, 5, 5, 5, 5, 5])
+            # Hbeta: 1-->4s, 1-->4p, 1-->4d, 1-->4f, 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
+            # 1-->7, 1-->8, 1-->9, 1-->10, 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
+            Ediff_factor = 1.
+            upsilon = np.array([np.polyval(upsilon_4s1s_coeff, np.log10(temp)), np.polyval(upsilon_4p1s_coeff, np.log10(temp)),
+                      np.polyval(upsilon_4d1s_coeff, np.log10(temp)), np.polyval(upsilon_4f1s_coeff, np.log10(temp)),
+                      np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
+                      np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)),
+                      np.polyval(upsilon_5g1s_coeff, np.log10(temp))])
+            branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 2.27e-1, 2.20e-2, 1.07e-1, 3.63e-1, 1.0])  # last 5 are from 50,51,52,53,54 --> 4
+        elif idx == 3:  # Hgamma
+            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            i = np.array([5, 5, 5, 5, 5])
+            # Hgamma: 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
+            # 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
+            Ediff_factor = 1.
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)),
+                                          np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
+            branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        elif idx == 4:  # Hdelta
+            #scale = np.array([2.51e-1, 2.56e-1, 2.59e-1, 2.61e-1, 2.62e-1, 2.64e-1, 2.66e-1]) # This scales recomb_42 to Hdelta, but since we are applying an Ediff_factor from Hg to Hd, we don't need this
+            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            i = np.array([5, 5, 5, 5, 5])
+            Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp))  # Energy difference b/t Hg and Hd
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
+            branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        elif idx == 5:  # H8
+            #scale = np.array([1.02e-1, 1.04e-1, 1.05e-1, 1.06e-1, 1.06e-1, 1.07e-1, 1.08e-1]) # This scales recomb_42 to H8, but since we are applying an Ediff_factor from Hg to Hd, we don't need this
+            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            i = np.array([5, 5, 5, 5, 5])
+            Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (kB * temp))  # Energy difference b/t Hg and H8
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
+                                          np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
+            branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        else:
+            print ('Not ready for this hydrogen transition')
+            pdb.set_trace()
+
+        grid_alpha = recomb_42 * scale
+        coeff = np.polyfit(np.log10(grid_temp), np.log10(grid_alpha), 2)
+        alpha = 10 ** np.polyval(coeff, np.log10(temp))
+
+        K = 4.004e-8 * np.sqrt(1 / (kB * temp)) * np.exp(-13.6 * (1 - (1 / i ** 2)) / (kB * temp)) * upsilon
+        numerator = K * branching_ratio
+        hydrogen_CR = xi * Ediff_factor * np.sum(numerator) / alpha
+
+
+    elif method == 'R2015':
+        print ('Using R+2015 formulations for collision strengths and recombination rates')
+        if idx == 0:  # Pgamma
+            # R+2015 only has fits for Balmer lines; taking coeffs from Hgamma and scaling it to Pgamma with Ediff_factor
+            i = 5
+            acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
+            bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+            Ediff_factor = np.exp( ( -13.6 * (-19/150) ) / ( kB * temp ) ) # Energy difference b/t Hg and Pg
+        elif idx == 1:  # Halpha
+            i = 3
+            # Fits to collision strength from Table 1 of R+2015
+            acoeffs = np.array([0.2500, 0.2461, 0.3297, 0.3892, -0.0928, 0.0071])
+            # Fits for the recombination coefficients from Table 2 of R+2015
+            bcoeffs = np.array([-13.3377, -0.7161, -0.1435, -0.0386, 0.0077])
+            Ediff_factor = 1.0
+        elif idx == 2:  # Hbeta
+            i = 4
+            acoeffs = np.array([0.1125, 0.1370, -0.1152, 0.1209, -0.0276, 0.0020])
+            bcoeffs = np.array([-13.5225, -0.7928, -0.1749, -0.0412, 0.0154])
+            Ediff_factor = 1.0
+        elif idx == 3:  # Hgamma
+            i = 5
+            acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
+            bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+            Ediff_factor = 1.0
+        elif idx == 4: # Hdelta
+            i = 6
+            acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
+            bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+            Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp))  # Energy difference b/t Hg and Hd
+        elif idx == 5: # H8
+            i = 6
+            acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
+            bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+            Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (kB * temp))  # Energy difference b/t Hg and H8
+        else:
+            print("Line not ready yet")
+            pdb.set_trace()
+
+        # Energy difference from ground state to collisionall excited state
+        ediff = -13.6 * (1 - (1 / i ** 2))
+        # Reparameterization of the temperature, defined after Eq. A11 of R+2015
+        tval = np.log10(temp / 1.0E4)
+
+        # Omega, the collision strength, calculated using Eq. A11 of R+2015
+        omega1k = np.zeros(tval.size)
+
+        for aa in range(acoeffs.size):
+            omega1k += acoeffs[aa] * tval ** aa
+        # Note 4.004E-8/np.sqrt(kB) = 0.5 * 8.629E-6  (i.e. Erik's Eq. 6.3 = Raga's Eq. A12, for the constant)
+        q1k = 0.5 * 8.629E-6 * omega1k[0] * np.exp(ediff / (kB * temp)) / np.sqrt(temp)
+
+        # Alpha, the recombination coefficient, calculated using Eq. A13 of R+2015
+        alphak = np.zeros(tval.size)
+
+        for aa in range(bcoeffs.size):
+            alphak += bcoeffs[aa] * tval ** aa
+        alphak = 10.0 ** (alphak[0])
+
+        # C/R should be eta * q/alpha
+        hydrogen_CR = Ediff_factor * xi * q1k / alphak
+
+    return hydrogen_CR
+
+#### Includes only AOS2010's forumlation for C/R
+def hydrogen_collision_to_recomb_old(xi, wave, temp):
     '''
     Calculate the factor that corrects the
     measured hydrogen flux for emission due
@@ -954,7 +1216,7 @@ def reddening_coefficient(wave):
 def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi, EW_Pg=0., hydrogen_method='S2018'):
     '''
     Generate the predicted flux ratio
-    F(λ)/F(Hβ)
+    F(lambda)/F(Hbeta)
 
     Parameters
     ----------
@@ -979,12 +1241,12 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
         of sight
     a_H : float
         Underlying hydrogen stellar
-        absorption (in Angstroms) at Hβ
+        absorption (in Angstroms) at Hbeta
     a_He : float
         Underlying helium stellar
-        absorption (in Angstroms) at HeI λ4472
+        absorption (in Angstroms) at HeI4472
     tau_He : float
-        Optical depth at HeI λ3889
+        Optical depth at HeI3889
 #    n_HI : float
 #        Density of neutral hydrogen (cm^-3)
     xi : float
@@ -993,7 +1255,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
     Returns
     -------
     flux_ratio : float
-        The model emission line flux ratio, relative to Hb
+        The model emission line flux ratio, relative to Hbeta
     '''
     emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # 1: to remove the duplicate HeI+H8 3890 line
 
@@ -1004,13 +1266,16 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
     dens = 10**log_dens
     xi = 10**log_xi
 
+    #### *****************
+    #### Eventually remove these if statements because we need C/R for both S2018 and HS1987 hydrogen emissivities
+    #### *****************
     if hydrogen_method == 'S2018':
         #### Testing S2018 emissivities *PLUS* C/R...
-        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
+        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp, method='R2015')
         ####
         #collisional_to_recomb_Hbeta = 0.
     elif hydrogen_method == 'HS1987':
-        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
+        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp, method='R2015')
 
     f_lambda_at_Hbeta = f_lambda_avg_interp(hydrogen_lines[2])
 
@@ -1027,12 +1292,11 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
                 #### Testing S2018 emissivities *PLUS* C/R...
-                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp)
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='R2015')
                 ####
-                #collisional_to_recomb_ratio = 0. # S2018 includes C/R
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp) # HS1987 does not include C/R
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='R2015') # HS1987 does not include C/R
 
             a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)            
             reddening_function = ( f_lambda_avg_interp(waves[w]) / f_lambda_at_Hbeta ) - 1.
@@ -1060,7 +1324,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
 #            frac_of_he = ( (y[0] * ( (EWs[w] + a_H_at_wave) / EWs[w]) ) - ( 0.104 * (temp/1e4)**0.046 * 10**-(reddening_function * c_Hb) ) ) / y[0]
 #            EW_HeI = frac_of_he * EWs[w]
 #            EW_H8 = (1-frac_of_he) * EWs[w]
-            # Assume fractional contribution of HeI vs H8 to the blended line is 50/50
+            # For purposes of generating fake fluxes, assume fractional contribution of HeI vs H8 to the blended line is 50/50
             frac_of_he = 0.5
             EW_HeI = frac_of_he * EWs[w]
             EW_H8 = (1-frac_of_he) * EWs[w]
@@ -1085,16 +1349,16 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
                 ####
                 #collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
-                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
-                # Adding H8 to the table using calculated ratio
-                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp)
+                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='R2015') # Calculate C/R(Hg) and multiply by above scale factor
+                # C/R(H8) now implemented into this function
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='R2015')
                 ####
-                #collisional_to_recomb_ratio = 0. # S2018 includes C/R
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-                collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
-                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
-
+                #collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
+                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='R2015') # Calculate C/R(Hg) and multiply by above scale factor
+                # C/R(H8) now implemented into this function
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='R2015')
             a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)
 
             flux += emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_H8 + a_H_at_wave)/(EW_H8) ) ) * \
@@ -1116,8 +1380,10 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
                 #### Testing S2018 emissivities *PLUS* C/R
-                collisional_to_recomb_factor = np.exp( ( -13.6 * (-19/150) ) / ( 8.6173303e-5 * temp ) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
-                collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
+                #collisional_to_recomb_factor = np.exp( ( -13.6 * (-19/150) ) / ( 8.6173303e-5 * temp ) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
+                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='R2015') # Calculate C/R(Hg) and multiply by above scale factor
+                # C/R(Pg) now implemented into this function
+                collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, 10940.082, temp, method='R2015')
 
                 Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
                                 ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
