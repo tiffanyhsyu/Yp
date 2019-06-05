@@ -15,6 +15,7 @@
 ###########
 # Updates #
 ###########
+# 2019-06-04: adding hydrogen emissivity to return either an emissivity as a ratio to Hb (default) or just emissivity
 # 2019-03-28: fixed bug in underlying stellar absorption (grabbing wrong value for H8 and HeI5017)
 #             edits to generate_emission_line_ratio
 #              - combined generate_nir_emission_line_ratio and generate_optical_emission_line_ratio
@@ -63,7 +64,7 @@ hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii',
 helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
 # Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC
-hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])
+hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166, 18756.096, 12821.578, 40522.79]) #last 3 are Pa, Pb, Br-a (4-3, 5-3, 5-4)
 
 # Vacuum wavelengths of Helium lines for MCMC
 helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
@@ -75,12 +76,17 @@ helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472
 # Hydrogen
 # --------
 # Interpolated Storey 2018 hydrogen emissivities
-ha_RBS = np.zeros((21,6))
-hb_RBS = np.zeros((21,6))
-hg_RBS = np.zeros((21,6))
-hd_RBS = np.zeros((21,6))
-h8_RBS = np.zeros((21,6))
-pg_RBS = np.zeros((21,6))
+ha_RBS = np.zeros((21,6)) # H-alpha, 3-->2
+hb_RBS = np.zeros((21,6)) # H-beta, 4-->2
+hg_RBS = np.zeros((21,6)) # H-gamma, 5-->2
+hd_RBS = np.zeros((21,6)) # H-delta, 6-->2
+h8_RBS = np.zeros((21,6)) # H8, 8-->2
+
+pa_RBS = np.zeros((21,6)) # Paschen-alpha, 4-->3
+pb_RBS = np.zeros((21,6)) # Paschen-beta, 5-->3
+pg_RBS = np.zeros((21,6)) # Paschen-gamma, 6-->3
+
+bra_RBS = np.zeros((21,6)) # Brackett-alpha, 5-->4
 
 for t in range(len(np.arange(5000, 26000, 1000))):
     ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0], \
@@ -98,32 +104,49 @@ for t in range(len(np.arange(5000, 26000, 1000))):
     h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0], \
                                                           np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    pa_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    pb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
     pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
                                                           np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+    bra_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 4)[0], \
+                                                          np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
+
 # Linear
 S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
 S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
 S2018_hg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
 S2018_hd_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=1, ky=1)
 S2018_h8_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=1, ky=1)
+S2018_pa_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pa_RBS, kx=1, ky=1)
+S2018_pb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pb_RBS, kx=1, ky=1)
 S2018_pg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
+S2018_bra_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), bra_RBS, kx=1, ky=1)
 # Cubic
 S2018_ha_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
 S2018_hb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
 S2018_hg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
 S2018_hd_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hd_RBS, kx=3, ky=3)
 S2018_h8_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), h8_RBS, kx=3, ky=3)
+S2018_pa_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pa_RBS, kx=3, ky=3)
+S2018_pb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pb_RBS, kx=3, ky=3)
 S2018_pg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=3, ky=3)
+S2018_bra_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), bra_RBS, kx=3, ky=3)
 
-def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
+def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear', ratio=True):
     '''
-    Calculate the emissivity of a hydrogen line
-    relative to H-beta using P. Storey's 2018 
-    hydrogen emissivities.
+    Calculate the emissivity of a hydrogen line,
+    defaulted to be relative to H-beta, using
+    P. Storey's 2018 hydrogen emissivities.
+    Option to return just a hydrogen line
+    emissivity.
 
-    These include the collisional to recombination
-    correction and are interpolated using a 
+    These are interpolated using a
     RectBivariateSpline() -- linear by default,
     option of cubic
 
@@ -137,59 +160,77 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear'):
         Density of the gas (in cm^-3)
     deg : str
         Degree of RBS interpolation; default is linear
+    ratio : True/False
+        Return the emissivity as a ratio to H-beta?
 
     Returns
     -------
     emissivity : float
-        The E(lambda)/E(Hbeta) ratio
+        The E(lambda)/E(Hbeta) ratio (default);
+        optional return of just E(lambda)
     '''
     # Reformat the density
     logdens = np.log10(dens)
 
-    # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
+    # Match to Balmer line of interest
     idx = np.where(np.abs(wave - hydrogen_lines) < 3.5)[0][0]
 
     if deg == 'linear':
         # H-beta emissivity, for calculating the ratio of emissivities
-        Hbeta_emis = S2018_hb_lin(temp, logdens)[0][0]
+        Hbeta_emis = S2018_hb_lin(temp, logdens).flatten()
         # Hydrogen emissivity
         if idx == 0: # P-gamma
-            Xt = S2018_pg_lin(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_pg_lin(temp, logdens).flatten()
         elif idx == 1: # H-alpha:
-            Xt = S2018_ha_lin(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_ha_lin(temp, logdens).flatten()
         elif idx == 2: # H-beta:
-            Xt = 1.
+            Xt = Hbeta_emis
         elif idx == 3: # H-gamma
-            Xt = S2018_hg_lin(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_hg_lin(temp, logdens).flatten()
         elif idx == 4: # H-delta
-            Xt = S2018_hd_lin(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_hd_lin(temp, logdens).flatten()
         elif idx == 5: # H8
-            Xt = S2018_h8_lin(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_h8_lin(temp, logdens).flatten()
+        elif idx == 6: # Pa
+            Xt = S2018_pa_lin(temp, logdens).flatten()
+        elif idx == 7: # Pb
+            Xt = S2018_pb_lin(temp, logdens).flatten()
+        elif idx == 8: # Br-a
+            Xt = S2018_bra_lin(temp, logdens).flatten()
         else:
             print('Not ready for this hydrogen line!')
             pdb.set_trace()
     elif deg == 'cubic':
         # H-beta emissivity, for calculating the ratio of emissivities
-        Hbeta_emis = S2018_hb_cubic(temp, logdens)[0][0]
+        Hbeta_emis = S2018_hb_cubic(temp, logdens).flatten()
         # Hydrogen emissivity
         if idx == 0: # P-gamma
-            Xt = S2018_pg_cubic(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_pg_cubic(temp, logdens).flatten()
         elif idx == 1: # H-alpha:
-            Xt = S2018_ha_cubic(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_ha_cubic(temp, logdens).flatten()
         elif idx == 2: # H-beta:
-            Xt = 1.
+            Xt = Hbeta_emis
         elif idx == 3: # H-gamma
-            Xt = S2018_hg_cubic(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_hg_cubic(temp, logdens).flatten()
         elif idx == 4: # H-delta
-            Xt = S2018_hd_cubic(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_hd_cubic(temp, logdens).flatten()
         elif idx == 5: # H8
-            Xt = S2018_h8_cubic(temp, logdens)[0][0] / Hbeta_emis
+            Xt = S2018_h8_cubic(temp, logdens).flatten()
+        elif idx == 6: # Pa
+            Xt = S2018_pa_cubic(temp, logdens).flatten()
+        elif idx == 7: # Pb
+            Xt = S2018_pb_cubic(temp, logdens).flatten()
+        elif idx == 8: # Br-a
+            Xt = S2018_bra_cubic(temp, logdens).flatten()
         else:
             print('Not ready for this hydrogen line!')
             pdb.set_trace()
     else:
         print ('Not ready for this degree of interpolation!')
         pdb.set_trace()
+
+    if ratio is True:
+        Xt = Xt / Hbeta_emis
 
     return Xt
 
@@ -778,6 +819,7 @@ def optical_depth_function(wave, temp, dens, tau):
 # Hydrogen
 # --------
 #grid_temp_A2002 = np.array([5802.26125726, 11604.52251451, 34813.56754354, 58022.61257257, 116045.22514514, 174067.83771772, 232090.45029029, 290113.06286286])
+# The following are collision strengths for various 1s-->n'l' transitions from Anderson et al. 2002, at T = [5802.26125726, 11604.52251451, 34813.56754354]
 #upsilon_3s1s = np.array([0.0651, 0.0696, 0.0776])
 #upsilon_3p1s = np.array([0.112, 0.126, 0.186])
 #upsilon_3d1s = np.array([0.0621, 0.0658, 0.0782])
@@ -790,6 +832,7 @@ def optical_depth_function(wave, temp, dens, tau):
 #upsilon_5d1s = np.array([0.0208, 0.0222, 0.0247])
 #upsilon_5f1s = np.array([0.00919, 0.00914, 0.00952])
 #upsilon_5g1s = np.array([0.00466, 0.00403, 0.00285])
+# These are the resulting coefficients for the 2nd degree polyfits to the above collision strengths
 upsilon_3s1s_coeff = np.array([0.00233701, -0.00334599,  0.04458994]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3s1s, 2)
 upsilon_3p1s_coeff = np.array([0.10184036, -0.75072221,  1.49488154]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3p1s, 2)
 upsilon_3d1s_coeff = np.array([0.01760335, -0.12551182,  0.28513044]) #np.polyfit(np.log10(grid_temp_A2002[0:3]), upsilon_3d1s, 2)
@@ -871,6 +914,9 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             line = str('Hd')
         elif idx == 5:
             line = ('H8')
+        else:
+            print ('No C/R information for ', wave, 'from AOS2010')
+            pdb.set_trace()
         #    print ('Hydrogen C/R for', line)
 
         rows = np.where(line == hydrogen_CR_coeff['Line'])[0]
@@ -886,13 +932,12 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
         hydrogen_CR = Keff_alphaeff * xi * 1e4
 
     elif method == 'A2002':
-        print ('Using A+2002 collision strengths, O1983 branching ratios, HS1987 recombination rates')
+        #print ('Using A+2002 collision strengths, O1983 branching ratios, HS1987 recombination rates')
+        # Temperatures and reported recombination rates from Hummer & Storey 1987
         grid_temp = np.array([5000., 7500., 10000., 12500., 15000., 20000., 30000.])
         recomb_42 = np.array([5.380e-14, 3.863e-14, 3.022e-14, 2.482e-14, 2.105e-14, 1.610e-14,
-                              1.087e-14])  # Recombination rate for 4-->2 transition
-        #### ****************
-        #### May want to do a different type of interpolation in the future; right now at specific grid_temps, we are not recovering the exact recombination rate
-        #### ****************
+                              1.087e-14])  # recombination rate for 4-->2 transition
+
         if idx == 0: # Pgamma
             # This would be the scaling from recomb_42 to Pgamma
             # scale = np.array([9.87e-2, 9.39e-2, 9.04e-2, 8.77e-2, 8.56e-2, 8.23e-2, 7.79e-2])
@@ -902,7 +947,6 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             # Pbeta: 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
             # 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
             Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp)) # Energy difference b/t Pb and Pg
-            upsilon = np.array([])
             upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
                                           np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
                                           np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
@@ -911,7 +955,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             # Recombination rate scaling factors from Hummer & Storey 1987
             scale = np.array([3.04, 2.93, 2.86, 2.82, 2.79, 2.75, 2.70])
             i = np.array([3, 3, 3, 4, 4, 4, 4])
-            # Collision strengths from Table 1 of Anderson et al. 2002
+            # Collision strengths from Table 1 of Anderson et al. 2002, interpolated to be at our temperature
             # Halpha: 1-->3s, 1-->3p, 1-->3d, 1-->4s, 1-->4p, 1-->4d, 1-->4f
             # In A2000's definition of i and j, these correspond to: 1-->4, 1-->5, 1-->6, 1-->7, 1-->8, 1-->9, 1-->10
             Ediff_factor = 1.
@@ -948,8 +992,8 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
             i = np.array([5, 5, 5, 5, 5])
             Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp))  # Energy difference b/t Hg and Hd
-            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
-                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)),
                                           np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
             branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
         elif idx == 5:  # H8
@@ -957,25 +1001,31 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
             i = np.array([5, 5, 5, 5, 5])
             Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (kB * temp))  # Energy difference b/t Hg and H8
-            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)), \
-                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)), \
+            upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
+                                          np.polyval(upsilon_5d1s_coeff, np.log10(temp)), np.polyval(upsilon_5f1s_coeff, np.log10(temp)),
                                           np.polyval(upsilon_5g1s_coeff, np.log10(temp))])])
             branching_ratio = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
         else:
             print ('Not ready for this hydrogen transition')
             pdb.set_trace()
 
+        #### ****************
+        #### May want to do a different type of interpolation in the future; right now at specific grid_temps, we are not recovering the exact recombination rate
+        #### ****************
         grid_alpha = recomb_42 * scale
         coeff = np.polyfit(np.log10(grid_temp), np.log10(grid_alpha), 2)
         alpha = 10 ** np.polyval(coeff, np.log10(temp))
 
         K = 4.004e-8 * np.sqrt(1 / (kB * temp)) * np.exp(-13.6 * (1 - (1 / i ** 2)) / (kB * temp)) * upsilon
         numerator = K * branching_ratio
+
         hydrogen_CR = xi * Ediff_factor * np.sum(numerator) / alpha
 
 
     elif method == 'R2015':
-        print ('Using R+2015 formulations for collision strengths and recombination rates')
+        hc = 1.986445824171758e-18 # Planck constant * speed of light in units of ergs * m
+
+        #print ('Using R+2015 formulations for collision strengths and recombination rates')
         if idx == 0:  # Pgamma
             # R+2015 only has fits for Balmer lines; taking coeffs from Hgamma and scaling it to Pgamma with Ediff_factor
             i = 5
@@ -987,18 +1037,45 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             # Fits to collision strength from Table 1 of R+2015
             acoeffs = np.array([0.2500, 0.2461, 0.3297, 0.3892, -0.0928, 0.0071])
             # Fits for the recombination coefficients from Table 2 of R+2015
-            bcoeffs = np.array([-13.3377, -0.7161, -0.1435, -0.0386, 0.0077])
+            #bcoeffs = np.array([-13.3377, -0.7161, -0.1435, -0.0386, 0.0077])
             Ediff_factor = 1.0
+
+            emiss_transitions = hydrogen_emissivity_S2018(hydrogen_lines[1], temp, 1, ratio=False)
+            photon_energy = np.ones(emiss_transitions.shape)
+            photon_energy *= np.array([hc / (hydrogen_lines[1]*1e-10)]) # 1e-10 converts Angstrom to meters
+
         elif idx == 2:  # Hbeta
             i = 4
             acoeffs = np.array([0.1125, 0.1370, -0.1152, 0.1209, -0.0276, 0.0020])
-            bcoeffs = np.array([-13.5225, -0.7928, -0.1749, -0.0412, 0.0154])
+            #bcoeffs = np.array([-13.5225, -0.7928, -0.1749, -0.0412, 0.0154])
             Ediff_factor = 1.0
+
+            emiss_transitions = np.array([hydrogen_emissivity_S2018(hydrogen_lines[2], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[6], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[1], temp, 1, ratio=False)])
+            photon_energy = np.ones(emiss_transitions.shape)
+            photon_energy *= np.array([( hc / (hydrogen_lines[2]*1e-10)),
+                                       ( hc / (hydrogen_lines[6]*1e-10)),
+                                       ( hc / (hydrogen_lines[1]*1e-10))])[:, None] #4-->2, 4-->3, 3-->2
         elif idx == 3:  # Hgamma
             i = 5
             acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
-            bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
+            #bcoeffs = np.array([-13.6820, -0.8629, -0.1957, -0.0375, 0.0199])
             Ediff_factor = 1.0
+
+            emiss_transitions = np.array([hydrogen_emissivity_S2018(hydrogen_lines[1], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[6], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[7], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[2], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[8], temp, 1, ratio=False),
+                                          hydrogen_emissivity_S2018(hydrogen_lines[3], temp, 1, ratio=False)])
+            photon_energy = np.ones(emiss_transitions.shape)
+            photon_energy *= np.array([( hc / (hydrogen_lines[1]*1e-10)),
+                                       ( hc / (hydrogen_lines[6]*1e-10)),
+                                       ( hc / (hydrogen_lines[7]*1e-10)),
+                                       ( hc / (hydrogen_lines[2]*1e-10)),
+                                       ( hc / (hydrogen_lines[8]*1e-10)),
+                                       ( hc / (hydrogen_lines[3]*1e-10))])[:, None]
         elif idx == 4: # Hdelta
             i = 6
             acoeffs = np.array([0.0773, 0.0678, -0.0945, 0.0796, -0.0177, 0.0013])
@@ -1027,11 +1104,18 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
         q1k = 0.5 * 8.629E-6 * omega1k[0] * np.exp(ediff / (kB * temp)) / np.sqrt(temp)
 
         # Alpha, the recombination coefficient, calculated using Eq. A13 of R+2015
-        alphak = np.zeros(tval.size)
 
-        for aa in range(bcoeffs.size):
-            alphak += bcoeffs[aa] * tval ** aa
-        alphak = 10.0 ** (alphak[0])
+        if idx in (1,2,3):
+            if len(emiss_transitions.shape) == 1:
+                alphak = emiss_transitions / photon_energy
+            elif len(emiss_transitions.shape) == 2:
+                alphak = np.sum(emiss_transitions / photon_energy, axis=0)
+        else:
+            alphak = np.zeros(tval.size)
+
+            for aa in range(bcoeffs.size):
+                alphak += bcoeffs[aa] * tval ** aa
+            alphak = 10.0 ** (alphak[0])
 
         # C/R should be eta * q/alpha
         hydrogen_CR = Ediff_factor * xi * q1k / alphak
