@@ -1023,7 +1023,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
 
 
     elif method == 'R2015':
-        hc = 1.986445824171758e-18 # Planck constant * speed of light in units of ergs * m
+        hc = 1.986445824171758e-18 # Planck constant * speed of light [ergs * m]
 
         #print ('Using R+2015 formulations for collision strengths and recombination rates')
         if idx == 0:  # Pgamma
