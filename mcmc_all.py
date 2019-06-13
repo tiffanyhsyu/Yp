@@ -12,9 +12,10 @@ class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
 
-        galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
+        #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
-        
+        galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
+
         self._full_tbl = galdict["full_tbl"]
         self._T_OIII = galdict["T_OIII"]
 
@@ -331,12 +332,14 @@ if __name__ == "__main__":
     names = ["IZw18SE1", "SBS0335-052E1", "SBS0335-052E3", "J0519+0007", "SBS0940+5442", "Tol65", "SBS1415+437No13",
              "SBS1415+437No2", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59",
              "SBS1135+581", "Mrk450No1"]
+    synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
 
     # Set which galaxy to run
     #rungal = "all"
-    rungal = "Test"
+    #rungal = "test"
+    rungal = "synthetic"
     #rungal = "SBS0940+5442"
-    #rungal = "CGCG007-025No2"
+
 
     if rungal == "all":
         # First, remove the file containing old output
@@ -360,8 +363,25 @@ if __name__ == "__main__":
                 print("ERROR :: The following galaxy failed: {0:s}".format(gal))
                 galfail += [gal]
         print("The following galaxies failed:\n" + "\n".join(galfail))
+
+    elif rungal == "synthetic":
+        synfail = []
+        for syn in synthetic_runs:
+            try:
+                MCMCgal(syn)
+                except IOError:
+                print("ERROR :: The following galaxy data could not be found: {0:s}".format(syn))
+                synfail += [syn]
+            except TypeError:
+                print("ERROR :: The following galaxy is not known: {0:s}".format(syn))
+                synfail += [syn]
+            except ValueError:
+                print("ERROR :: The following galaxy failed: {0:s}".format(syn))
+                synfail += [syn]
+        print("The following galaxies failed:\n" + "\n".join(galfail))
+
     else:
-        if rungal in names or rungal == "Test":
+        if rungal in names or rungal == "test":
             MCMCgal(rungal)
         else:
             print("Invalid Galaxy name. Select one of the following:\n" + "\n".join(names))
