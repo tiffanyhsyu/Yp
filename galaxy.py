@@ -162,3 +162,44 @@ def load_AOS2012(galaxyname):
     outdict["T_OIII"] = T_OIII
     return outdict
 
+def load_synthetic(galaxyname):
+    outdict = dict()
+    dir = '/test_data/synthetic/'
+    if galaxyname == 'synthetic1':
+        gname = 'synthetic1_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic2':
+        gname = 'synthetic2_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic3':
+        gname = 'synthetic3_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic4':
+        gname = 'synthetic4_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic5':
+        gname = 'synthetic5_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic6':
+        gname = 'synthetic6_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic7':
+        gname = 'synthetic7_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'synthetic8':
+        gname = 'synthetic8_erik'
+        T_OIII = 16500.
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    else:
+        print("Galaxy not known: {0:s}".format(galaxyname))
+        return None
+    outdict["full_tbl"] = full_tbl
+    outdict["T_OIII"] = T_OIII
+    return outdict
