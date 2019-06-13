@@ -16,8 +16,8 @@ class MCMCgal:
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
         galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
 
-        self._full_tbl = galdict["full_tbl"]
-        self._T_OIII = galdict["T_OIII"]
+        self._full_tbl = galdict['full_tbl']
+        self._T_OIII = galdict['T_OIII']
 
         # Read in measured data (wavelength, flux ratios, and EWs)
         self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
@@ -250,7 +250,7 @@ class MCMCgal:
         a = time.time()
         for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
             if True:  # (i+1) % 100 == 0:
-                print("{0:5.1%}".format(float(i) / nmbr))
+                print('{0:5.1%}'.format(float(i) / nmbr))
         print('Done!')
         print((time.time() - a) / 60.0, 'mins')
 
@@ -262,8 +262,7 @@ class MCMCgal:
 
         samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
         # Names of 8 parameters and input 'true' parameter values
-        prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{H}$', '$a_{He}$', '$\\tau_{He}',
-                   '$log(\\xi)$']  # '$n_{HI}$']
+        prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{H}$', '$a_{He}$', '$\\tau_{He}', '$log(\\xi)$']
         input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -2])  # Input parameters for fake spectra
         # input_vals = np.array([0.08634, 12979, 1.987, 0.15, 2.31, 0.37, 2.27, -1.767]) # AOS 2015's solved parameters for Mrk450 No.1
 
@@ -289,20 +288,20 @@ class MCMCgal:
         dens_mcmc = (v[1], v[2] - v[1], v[1] - v[0],)
         # Save some output
         allpars = np.hstack((y_plus_mcmc, dens_mcmc, a_He_mcmc, tau_He_mcmc, temp_mcmc, c_Hb_mcmc, a_H_mcmc, log_xi_mcmc))
-        outdat = open("all_output", 'r').readlines()
-        sendout = open("all_output", 'w')
+        outdat = open('all_output', 'r').readlines()
+        sendout = open('all_output', 'w')
         for ii in outdat:
             sendout.write(ii)
-        sendout.write("{0:s} ".format(self.galaxyname))
+        sendout.write('{0:s} '.format(self.galaxyname))
         for ii in allpars:
-            sendout.write("{0:f} ".format(ii))
-        sendout.write("\n")
+            sendout.write('{0:f} '.format(ii))
+        sendout.write('\n')
         sendout.close()
 
-        """
+        '''
         fig, axes = plt.subplots(ndim, 1, sharex=True, figsize=(8, 12))
         for i in range(ndim):
-            axes[i].plot(sampler.chain[:, :, i].T, color="k", alpha=0.4)
+            axes[i].plot(sampler.chain[:, :, i].T, color='k', alpha=0.4)
             axes[i].yaxis.set_major_locator(MaxNLocator(5))
             axes[i].axvline(burnin, color='red')
             axes[i].set_ylabel(prenams[i])
@@ -314,64 +313,65 @@ class MCMCgal:
         fig = corner.corner(samples, labels=prenams, truths=input_vals)
         fig.savefig('{0:s}_{1:d}_walkers{2:d}_steps.pdf'.format('test_MCMC_params', nwalkers, nmbr), overwrite=True)
         #fig.savefig('{0:s}_{1:d}_walkers{2:d}_steps.pdf'.format('LeoP_MCMC_params', nwalkers, nmbr), overwrite=True)
-        """
+        '''
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # The allowed names
-    names = ["IZw18SE1", "SBS0335-052E1", "SBS0335-052E3", "J0519+0007", "SBS0940+5442", "Tol65", "SBS1415+437No13",
-             "SBS1415+437No2", "CGCG007-025No2", "Mrk209", "SBS1030+583", "Mrk71No1", "SBS1152+579", "Mrk59",
-             "SBS1135+581", "Mrk450No1"]
+    names = ['IZw18SE1', 'SBS0335-052E1', 'SBS0335-052E3', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'SBS1415+437No13',
+             'SBS1415+437No2', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583', 'Mrk71No1', 'SBS1152+579', 'Mrk59',
+             'SBS1135+581', 'Mrk450No1']
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
 
     # Set which galaxy to run
-    #rungal = "all"
-    #rungal = "test"
-    rungal = "synthetic"
-    #rungal = "SBS0940+5442"
+    #rungal = 'all'
+    #rungal = 'test'
+    rungal = 'synthetic'
+    #rungal = 'SBS0940+5442'
 
 
-    if rungal == "all":
+    if rungal == 'all':
         # First, remove the file containing old output
-        if os.path.exists("all_output"):
-            os.remove("all_output")
-        outfile = open("all_output", 'w')
-        outfile.write("Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n")
+        if os.path.exists('all_output'):
+            os.remove('all_output')
+        outfile = open('all_output', 'w')
+        outfile.write('Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n')
         outfile.close()
         # Run MCMC on all galaxies
         galfail = []
         for gal in names:
             try:
+                print ('Working on', gal)
                 MCMCgal(gal)
             except IOError:
-                print("ERROR :: The following galaxy data could not be found: {0:s}".format(gal))
+                print('ERROR :: The following galaxy data could not be found: {0:s}'.format(gal))
                 galfail += [gal]
             except TypeError:
-                print("ERROR :: The following galaxy is not known: {0:s}".format(gal))
+                print('ERROR :: The following galaxy is not known: {0:s}'.format(gal))
                 galfail += [gal]
             except ValueError:
-                print("ERROR :: The following galaxy failed: {0:s}".format(gal))
+                print('ERROR :: The following galaxy failed: {0:s}'.format(gal))
                 galfail += [gal]
-        print("The following galaxies failed:\n" + "\n".join(galfail))
+        print('The following galaxies failed:\n' + '\n'.join(galfail))
 
-    elif rungal == "synthetic":
+    elif rungal == 'synthetic':
         synfail = []
         for syn in synthetic_runs:
             try:
                 MCMCgal(syn)
                 except IOError:
-                print("ERROR :: The following galaxy data could not be found: {0:s}".format(syn))
+                print('ERROR :: The following galaxy data could not be found: {0:s}'.format(syn))
                 synfail += [syn]
             except TypeError:
-                print("ERROR :: The following galaxy is not known: {0:s}".format(syn))
+                print('ERROR :: The following galaxy is not known: {0:s}'.format(syn))
                 synfail += [syn]
             except ValueError:
-                print("ERROR :: The following galaxy failed: {0:s}".format(syn))
+                print('ERROR :: The following galaxy failed: {0:s}'.format(syn))
                 synfail += [syn]
-        print("The following galaxies failed:\n" + "\n".join(galfail))
+        print('The following galaxies failed:\n' + '\n'.join(synfail))
 
     else:
-        if rungal in names or rungal == "test":
+        if rungal in names or rungal == 'test':
             MCMCgal(rungal)
         else:
-            print("Invalid Galaxy name. Select one of the following:\n" + "\n".join(names))
+            print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
