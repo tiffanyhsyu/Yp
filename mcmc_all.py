@@ -29,7 +29,8 @@ class MCMCgal:
         # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
         # Want to include HeI5017 to allow for it if the measurement exists
-        self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
+        #self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
+        self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 4472.755, 4027.328, 3890.151])
 
         self._allowed_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:]  # [1:] to remove the duplicate ~3890 wavelength
 
