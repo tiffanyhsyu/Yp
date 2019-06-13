@@ -9,5 +9,7 @@ Wavelength Species "Flux Ratio" "Flux Ratio Errors" EW "EW Errors"
 6564.612 hydrogen 3.083 0.044 1078.9 15.39785922802465
 6679.994 helium 0.03 0.001 10.8 0.36000000000000004
 7067.198 helium 0.031 0.001 13.3 0.42903225806451617
+# -- -- F(HeI10830)/F(Pg) -- EW(HeI10830) EW(HeI10830)_err
 10833.306 helium 4.7 0.07 778.0 3.0
+# -- -- -- -- EW(Pg) EW(Pg)_err
 10941.082 hydrogen 0.0 0.0 188.0 2.0

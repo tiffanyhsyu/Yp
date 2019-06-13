@@ -1,4 +1,4 @@
-import corner
+Ïimport corner
 import emcee
 import time
 import os
@@ -31,7 +31,7 @@ x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
-min_temp, max_temp = 5000, 25000  # electron temperature (K)
+min_temp, max_temp = 10000, 22000  # electron temperature (K)
 min_log_dens, max_log_dens = 0, 3  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
@@ -85,7 +85,7 @@ def get_model(theta):
 		elif nearest_wave in helium_lines and nearest_wave != 3890.151:
 			line_species = 'helium'
             
-			emissivity_ratio = mfr.helium_emissivity(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
 			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)
@@ -102,7 +102,7 @@ def get_model(theta):
 			# HeI 3890.151 contribution:
 			line_species = 'helium'
 			
-			emissivity_ratio = mfr.helium_emissivity(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)            
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)            
 			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)            

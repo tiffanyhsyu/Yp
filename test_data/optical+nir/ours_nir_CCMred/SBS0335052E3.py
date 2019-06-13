@@ -5,6 +5,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import model_flux_ratio as mfr
+import pdb
 
 from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
@@ -14,7 +15,7 @@ full_tbl = Table.read(os.getcwd()+'/test_data/SBS0335052E3_nir', format='ascii',
 flux_ratios = full_tbl[:-1] # Ignore the entry for P-gamma for MCMC
 
 # Names of wavelenghts of interest for MCMC
-y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
 # Balmer and Helium lines of interest for MCMC
 hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Pa-g, Ha, Hb, Hg, Hd, H8
@@ -33,7 +34,7 @@ x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
-min_temp, max_temp = 5000, 25000  # electron temperature (K)
+min_temp, max_temp = 10000, 22000  # electron temperature (K)
 min_log_dens, max_log_dens = 0, 3  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
@@ -54,17 +55,17 @@ def get_model(theta):
 	# Take into account error on EW(Hb) by perturbing EW(Hb) by its measured EW error
 	EW_Hb = np.random.normal(flux_ratios['EW'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0], 0.1*flux_ratios['EW'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0]) #flux_ratios['EW Errors'][np.where(flux_ratios['Wavelength'] == 4862.721)[0]][0])
 
-	# Continuum level ratio
-	h = y * EW_Hb / EWs_meas # relative to H-beta; i.e., h(lambda) / h(H-beta)
+	# Continuum level ratio; Eq. 2.4 of AOS2012
+	h = y * EW_Hb / EWs_meas # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
 	# Model flux
-	model_flux = np.zeros(y.size) # 12 emission line fluxes we want to model
+	model_flux = np.zeros(y.size) # emission line fluxes we want to model
 
 	# Some values, calculated at Hbeta, for later use in model flux
 	collisional_to_recomb_Hbeta = mfr.hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp)
 	AHbeta_Av = mfr.reddening_coefficient(hydrogen_lines[2])
 
-	for w in range(len(emis_lines[:-1])): # [:-1] removes Pa-g which is currently in hydrogen_lines
+	for w in range(len(emis_lines)):
 		# Determine if working with hydrogen or helium line; within 3 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
 		nearest_wave = emis_lines[np.where(np.abs(emis_lines - emis_lines[w]) < 3)[0]][0]
 		# The above line is redundant for my input waves, but allows for cases where emis_lines[w] is some other array, say waves_of_interest[w], 
@@ -74,7 +75,7 @@ def get_model(theta):
 		if nearest_wave in hydrogen_lines and nearest_wave != 3890.166:
 			line_species = 'hydrogen'
 			
-			emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.hydrogen_emissivity_HS1987(emis_lines[w], temp, dens)
 			a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
 			collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp)
 			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1.            
@@ -94,14 +95,14 @@ def get_model(theta):
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
 			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)
-			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1. 
+			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1.
 
 			flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
 				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w]) )
 
 		# The blended HeI+H8 line
 		elif nearest_wave == 3890.151 or nearest_wave == 3890.166:
-			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1. 
+			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1.\
 
 			# HeI 3890.151 contribution:
 			line_species = 'helium'
@@ -117,7 +118,7 @@ def get_model(theta):
 			# H8 contribution:
 			line_species = 'hydrogen'
 
-			emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
+			emissivity_ratio = mfr.hydrogen_emissivity_HS1987(emis_lines[w], temp, dens)
 			a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)            
 			collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
 			collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
@@ -127,6 +128,19 @@ def get_model(theta):
 
 		# Infrared HeI10830 line
 		elif nearest_wave == 10833.306:
+			# Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
+			line_species = 'hydrogen'
+
+			emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+			a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
+			collisional_to_recomb_ratio = 0. # using S2018's hydrogen emissivities, so C/R should be folded in for Pg
+			reddening_function = ( mfr.reddening_coefficient(10941.082) / AHbeta_Av ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+
+			EW_Pg = full_tbl[-1]['EW'] # Assumes the last entry in input table is P-gamma
+			Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
+							( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
+							10**-(reddening_function * c_Hb)
+
 			# Theoretical F(HeI10830)/F(Hbeta) ratio
 			line_species = 'helium'
 
@@ -134,22 +148,12 @@ def get_model(theta):
 			a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
 			optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
 			collisional_to_recomb_ratio = 0. #mfr.helium_collision_to_recomb(emis_lines[w], temp, dens)            
-			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1. 
+			reddening_function = ( mfr.reddening_coefficient(emis_lines[w]) / AHbeta_Av ) - 1.
 
+			# The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
+			# theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
 			HeI10830_to_Hb_flux = ( y_plus * emissivity_ratio *  optical_depth_at_wave * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w]) )
-
-			# Theoretical F(Pg)/F(Hb) aka 'model-dependent scaling' ratio
-			line_species = 'hydrogen'
-
-			emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
-			a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
-			collisional_to_recomb_ratio = 0. # using S2018's hydrogen emissivities, so C/R should be folded in for Pg
-			reddening_function = ( mfr.reddening_coefficient(10941.082) / AHbeta_Av ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
-
-			EW_Pg = full_tbl[-1]['EW'] # Assumes the last entry in input table is P-gamma
-			Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-				10**-(reddening_function * c_Hb)
+				10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_He_at_wave/EW_Hb) * (h[w] * Pg_to_Hb_flux) )
 
 			# Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
 			flux = HeI10830_to_Hb_flux / Pg_to_Hb_flux
@@ -175,7 +179,7 @@ def lnprior(theta):
 		min_a_He <= a_He <= max_a_He and \
 		min_tau_He <= tau_He <= max_tau_He and \
 		min_log_xi <= log_xi <= max_log_xi:
-		return ( -(temp - 20800)**2 / (0.2*20800)**2 )
+		return ( -(temp - 20800)**2 / (0.2*20800)**2 ) # Mrk450
 
 	return -np.inf
 

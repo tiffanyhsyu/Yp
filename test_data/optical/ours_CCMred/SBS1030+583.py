@@ -31,7 +31,7 @@ x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
 min_y_plus, max_y_plus = 0.05, 0.1  # fraction of singly ionized He; y+ = He+/H+
-min_temp, max_temp = 5000, 25000  # electron temperature (K)
+min_temp, max_temp = 10000, 22000  # electron temperature (K)
 min_log_dens, max_log_dens = 0, 3  # log10(electron density) (cm^-3)
 min_c_Hb, max_c_Hb = 0, 0.5  # reddening
 min_a_H, max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
