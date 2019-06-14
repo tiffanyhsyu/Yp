@@ -1158,68 +1158,6 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
 
     return hydrogen_CR
 
-#### Includes only AOS2010's forumlation for C/R
-def hydrogen_collision_to_recomb_old(xi, wave, temp):
-    '''
-    Calculate the factor that corrects the
-    measured hydrogen flux for emission due
-    to collisional excitation of neutral
-    hydrogen
-
-    Assumes that at these densities
-    and temperatures, all neutral hydrogen is
-    excited from the ground state
-
-    Parameters
-    ----------
-    xi : float
-        n(HI)/n(HII); ratio of neutral hydrogen
-        to ionized hydrogen densities
-    wave : float
-        Wavelength of the Balmer line (in Angstroms)
-    temp : float
-        Temperature of the gas (in Kelvin)
-
-    Returns
-    -------
-    hydrogen_CR : float
-        Relative amount of collisional to
-        recombination emission for a given
-        Balmer line
-        C/R(wavelength) = eta*K_eff/alpha_eff
-    '''
-    # Redefine the temperature
-    T4 = temp / 10000.
-
-    # Match Balmer line of interest to relevant rows in Table 3 of AOS 2010
-    idx = np.where(np.abs(hydrogen_lines - wave) < 3.5)[0][0]
-
-    if idx == 1:
-        line = str('Ha')
-    elif idx == 2:
-        line = str('Hb')
-    elif idx == 3:
-        line = str('Hg')
-    elif idx == 4:
-        line = str('Hd')
-    elif idx == 5:
-        line = ('H8')
-    #    print ('Hydrogen C/R for', line)
-
-    rows = np.where(line == hydrogen_CR_coeff['Line'])[0]
-
-    # Calculate the total K_eff/alpha_eff for relevant energy levels -- collisional sum includes an infinite
-    # number of levels, but probabilities fall off quickly. This sum excludes terms contributing < 1%
-    Keff_alphaeff = 0.
-    for i in range(1, 9): # 1-9 here is to grab the 'Term1', 'Term2', etc. column names
-        a, b, c = hydrogen_CR_coeff['Term ' + str(i)][rows]
-        Keff_alphaeff += (a * np.exp(b/ T4) * (T4 ** c))
-
-    # Amount of collisional to recombination emission; from Equation 6.1 of AOS 2010
-    hydrogen_CR = Keff_alphaeff * xi * 1e4
-
-    return hydrogen_CR
-
 # Helium
 # ------
 def helium_collision_to_recomb(wave, temp, dens):
