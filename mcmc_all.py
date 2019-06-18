@@ -15,6 +15,7 @@ class MCMCgal:
         #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
         galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
+        #galdict = galaxy.load_ours(self.galaxyname)
 
         self._full_tbl = galdict['full_tbl']
         self._T_OIII = galdict['T_OIII']
@@ -318,19 +319,20 @@ class MCMCgal:
 
 if __name__ == '__main__':
     # The allowed names
-    names = ['IZw18SE1', 'SBS0335-052E1', 'SBS0335-052E3', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'SBS1415+437No13',
+    AOS2015 = ['IZw18SE1', 'SBS0335-052E1', 'SBS0335-052E3', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'SBS1415+437No13',
              'SBS1415+437No2', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583', 'Mrk71No1', 'SBS1152+579', 'Mrk59',
              'SBS1135+581', 'Mrk450No1']
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
 
     # Set which galaxy to run
-    #rungal = 'all'
+    #rungal = 'AOS2015'
     #rungal = 'test'
+    #rungal = 'ours'
     rungal = 'synthetic'
     #rungal = 'SBS0940+5442'
 
 
-    if rungal == 'all':
+    if rungal == 'AOS2015':
         # First, remove the file containing old output
         if os.path.exists('all_output'):
             os.remove('all_output')
@@ -339,7 +341,31 @@ if __name__ == '__main__':
         outfile.close()
         # Run MCMC on all galaxies
         galfail = []
-        for gal in names:
+        for gal in AOS2015:
+            try:
+                print ('Working on', gal)
+                MCMCgal(gal)
+            except IOError:
+                print('ERROR :: The following galaxy data could not be found: {0:s}'.format(gal))
+                galfail += [gal]
+            except TypeError:
+                print('ERROR :: The following galaxy is not known: {0:s}'.format(gal))
+                galfail += [gal]
+            except ValueError:
+                print('ERROR :: The following galaxy failed: {0:s}'.format(gal))
+                galfail += [gal]
+        print('The following galaxies failed:\n' + '\n'.join(galfail))
+
+    elif rungal == 'ours':
+        # First, remove the file containing old output
+        if os.path.exists('all_output'):
+            os.remove('all_output')
+        outfile = open('all_output', 'w')
+        outfile.write('Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n')
+        outfile.close()
+        # Run MCMC on all galaxies
+        galfail = []
+        for gal in ours:
             try:
                 print ('Working on', gal)
                 MCMCgal(gal)
