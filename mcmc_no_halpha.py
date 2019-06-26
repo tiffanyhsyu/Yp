@@ -30,6 +30,8 @@ allowed_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # Re
 # Emission lines actually measured and to be used in the MCMC
 emis_lines = np.array(flux_ratios['Wavelength'])
 
+print (flux_ratios)
+
 # Measured data from spectra
 EWs_meas = np.array(flux_ratios['EW'])
 
@@ -81,17 +83,23 @@ def get_model(theta):
         if nearest_wave in hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:
             line_species = 'hydrogen'
 
-            emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
-            a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
-            collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp, method='A2002')
-            reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+            # Separate -- if HI line is Ha, and we should generate its flux ratio w.r.t itself, i.e. flux = 1.0, since we don't have red/blue side info
+            if nearest_wave == 6564.612:
+                flux = 1.0
 
-            #            flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
-            #                ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-            #                10**-(reddening_function * c_Hb)
-            # Reparameterization of flux to use the continuum level
-            flux = (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
-                    10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
+            # Otherwise, do F(HI)/F(Hb) as usual
+            else:
+                emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
+                a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
+                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp, method='A2002')
+                reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+
+                #            flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
+                #                ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
+                #                10**-(reddening_function * c_Hb)
+                # Reparameterization of flux to use the continuum level
+                flux = (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
+                        10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
 
         # Any HeI line besides the blended HeI+H8 line (HeI at 3890.151) and NIR HeI10830 line
         elif nearest_wave in helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
@@ -101,12 +109,12 @@ def get_model(theta):
                 # First, theoretical F(Halpha)/F(Hbeta) ratio
                 line_species = 'hydrogen'
 
-                emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
-                a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
-                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp, method='A2002')
-                reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                emissivity_ratio = mfr.hydrogen_emissivity_S2018(6564.612, temp, dens)
+                a_H_at_wave = mfr.stellar_absorption(6564.612, a_H, ion=line_species)
+                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, 6564.612, temp, method='A2002')
+                reddening_function = (mfr.f_lambda_avg_interp(6564.612) / f_lambda_at_Hbeta) - 1.
 
-                EW_Ha = full_tbl['EW'][np.where(full_tbl['Wavelength'] == hydrogen_lines[1])[0][0]]
+                EW_Ha = full_tbl['EW'][np.where(full_tbl['Wavelength'] == 6564.612)[0][0]]
                 Ha_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                 10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Ha + a_H_at_wave) / (EW_Ha))
 
@@ -124,8 +132,10 @@ def get_model(theta):
                 # Want to get theoretical F(HeI)/F(Ha) to match that in the input table of flux_ratios -- can do this by ( F(HeI)/F(Hbeta) ) / ( F(Halpha)/F(Hbeta) )!
                 flux = HeI_to_Hb_flux / Ha_to_Hb_flux
 
-            # Otherwise, do HeI/Hb as usual
+            # Otherwise, do F(HeI)/F(Hb) as usual
             else:
+                line_species = 'helium'
+
                 emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
                 a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
