@@ -25,23 +25,25 @@ from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
-full_tbl = Table.read(os.getcwd()+'/test_erik_syn3', format='ascii', delimiter=' ')
+full_tbl = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
 # NIR
-flux_ratios = full_tbl[:-1] # Ignore the last entry, assumed to be for P-gamma, for MCMC
+#flux_ratios = full_tbl[:-1] # Ignore the last entry, assumed to be for P-gamma, for MCMC
 # Optical
-#flux_ratios = full_tbl
+flux_ratios = full_tbl
 
-# Names of wavelenghts of interest for MCMC
-y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+print (flux_ratios)
 
-# Balmer and Helium lines of interest for MCMC
+# Names of wavelengths of interest for MCMC
+#y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+
 # NIR
 hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Pg, Ha, Hb, Hg, Hd, H8
-helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 4472.755, 4027.328, 3890.151])
-# + 5017
-#helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
+helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
+allowed_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # [1:] to remove duplicate H8, HeI3890 line
+
+'''
 # Optical
-#hydrogen_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Pg, Ha, Hb, Hg, Hd, H8
+#hydrogen_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Ha, Hb, Hg, Hd, H8
 #helium_lines = np.array([7067.198, 6679.994, 5877.299, 4472.755, 4027.328, 3890.151])
 
 # Wavelengths we care about for MCMC
@@ -49,13 +51,17 @@ helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 4472.755, 4027
 emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:-1] # [1:] to remove the duplicate ~3890 wavelength; [:-1] to remove Pg
 # Optical
 #emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:]
+'''
+
+# Hydrogen and Helium lines of interest for MCMC
+emis_lines = np.array(flux_ratios['Wavelength'])
 
 # Measured data from spectra
 EWs_meas = np.array(flux_ratios['EW'])
 
 y = np.array(flux_ratios['Flux Ratio']) # F(lambda) / F(H-beta)
-y_error = np.array(flux_ratios['Flux Ratio'] * 0.002) # For test_output flux, where we have no EW errors
-#y_error = np.array(flux_ratios['Flux Ratio Errors'])
+#y_error = np.array(flux_ratios['Flux Ratio'] * 0.1) # For test_output flux, where we have no EW errors
+y_error = np.array(flux_ratios['Flux Ratio Errors'])
 x = np.zeros(y.size)
 
 # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -94,30 +100,26 @@ def get_model(theta):
     #### Should emis_lines here be flux_ratios['Wavelengths']??
     for w in range(len(emis_lines)):
         # Determine if working with hydrogen or helium line; within 3.5 Angstroms is arbitrary but should cover difference in vacuum vs air wavelength
-        nearest_wave = emis_lines[np.where(np.abs(emis_lines - emis_lines[w]) < 3.5)[0]][0]
+        nearest_wave = allowed_lines[np.where(np.abs(allowed_lines - emis_lines[w]) < 3.5)[0]][0]
         # The above line is redundant for my input waves, but allows for cases where emis_lines[w] is some other array, say waves_of_interest[w], 
         # and not exactly at the wavelengths given in the emis_lines array (which is concatenated from arrays hydrogen_lines and helium_lines)
     
         # Any HI line besides the blended HeI+H8 line (H8 at 3890.166) and Pg
         if nearest_wave in hydrogen_lines and nearest_wave != 3890.166 and nearest_wave != 10941.082:
             line_species = 'hydrogen'
-            
+
             emissivity_ratio = mfr.hydrogen_emissivity_S2018(emis_lines[w], temp, dens)
             a_H_at_wave = mfr.stellar_absorption(emis_lines[w], a_H, ion=line_species)
             collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, emis_lines[w], temp, method='A2002')
-            reddening_function = ( mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta ) - 1.            
+            reddening_function = ( mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta ) - 1.
 
-#            flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
-#                ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
-#                10**-(reddening_function * c_Hb)
-            # Reparameterization of flux to use the continuum level
             flux = ( emissivity_ratio * ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
                 10**-(reddening_function * c_Hb) * ( (EW_Hb + a_H)/(EW_Hb) ) ) - ( (a_H_at_wave / EW_Hb) * (h[w]) )
                 
         # Any HeI line besides the blended HeI+H8 line (HeI at 3890.151) and NIR HeI10830 line
         elif nearest_wave in helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
             line_species = 'helium'
-            
+
             emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
             a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
             optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
@@ -162,7 +164,6 @@ def get_model(theta):
             collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, 10941.082, temp, method='A2002')
             reddening_function = ( mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
 
-            # Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
             EW_Pg = full_tbl[np.where(full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
             Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
                             ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * 10**-(reddening_function * c_Hb)
@@ -249,7 +250,7 @@ print('Done!')
 print((time.time() - a) / 60.0, 'mins')
 
 print('Saving samples')
-np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('test_erik_syn3', nwalkers, nmbr), sampler.chain)
+np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('test_no_nir_4026_7067', nwalkers, nmbr), sampler.chain)
 
 print('Making plots')
 burnin = int(0.8 * nmbr)
