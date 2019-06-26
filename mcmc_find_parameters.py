@@ -34,24 +34,12 @@ flux_ratios = full_tbl
 print (flux_ratios)
 
 # Names of wavelengths of interest for MCMC
-#y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
+y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
-# NIR
+# All H, He lines available
 hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Pg, Ha, Hb, Hg, Hd, H8
 helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 allowed_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:] # [1:] to remove duplicate H8, HeI3890 line
-
-'''
-# Optical
-#hydrogen_lines = np.array([6564.612, 4862.721, 4341.684, 4102.891, 3890.166]) # Ha, Hb, Hg, Hd, H8
-#helium_lines = np.array([7067.198, 6679.994, 5877.299, 4472.755, 4027.328, 3890.151])
-
-# Wavelengths we care about for MCMC
-# NIR
-emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:-1] # [1:] to remove the duplicate ~3890 wavelength; [:-1] to remove Pg
-# Optical
-#emis_lines = np.sort(np.concatenate((hydrogen_lines, helium_lines)))[1:]
-'''
 
 # Hydrogen and Helium lines of interest for MCMC
 emis_lines = np.array(flux_ratios['Wavelength'])
