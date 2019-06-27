@@ -137,7 +137,7 @@ class MCMCgal:
                     reddening_function = (mfr.f_lambda_avg_interp(6564.612) / f_lambda_at_Hbeta) - 1.
 
                     EW_Ha = full_tbl['EW'][np.where(full_tbl['Wavelength'] == 6564.612)[0][0]]
-                    Ha_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
+                    Ha_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                     10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Ha + a_H_at_wave) / (EW_Ha))
 
                     # Now, F(HeI)/F(Hb) ratio
