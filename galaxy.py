@@ -253,7 +253,7 @@ def load_ours(galaxyname):
         gname = 'J0000p3052B'
         T_OIII = 15110.068679551327
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
-    elif galaxyname = 'J0018p2345':
+    elif galaxyname == 'J0018p2345':
         gname = 'J0018p2345'
         T_OIII = 16740.044632787234
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
@@ -285,7 +285,7 @@ def load_ours(galaxyname):
         gname = 'J0743p4807'
         T_OIII = 9390.403459203068
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
-    elif galaxyname = 'J0757p4750':
+    elif galaxyname == 'J0757p4750':
         gname = 'J0757p4750'
         T_OIII = 15846.837228485041
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
@@ -313,7 +313,7 @@ def load_ours(galaxyname):
         gname = 'J1214p1245'
         T_OIII = 14896.286859605134
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
-    elif galaxyname = 'J1322p5425':
+    elif galaxyname == 'J1322p5425':
         gname = 'J1322p5425'
         T_OIII = 17158.63589425323
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
