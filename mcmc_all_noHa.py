@@ -143,10 +143,10 @@ class MCMCgal:
                     # Now, F(HeI)/F(Hb) ratio
                     line_species = 'helium'
 
-                    emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
-                    a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
-                    optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
-                    reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                    emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                    a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
+                    optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
+                    reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
 
                     HeI_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) *
                                       10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_He_at_wave / EW_Hb) * (h[w] * Ha_to_Hb_flux))
@@ -158,10 +158,10 @@ class MCMCgal:
                 else:
                     line_species = 'helium'
 
-                    emissivity_ratio = mfr.helium_emissivity_PFSD2012(emis_lines[w], temp, dens)
-                    a_He_at_wave = mfr.stellar_absorption(emis_lines[w], a_He, ion=line_species)
-                    optical_depth_at_wave = mfr.optical_depth_function(emis_lines[w], temp, dens, tau_He)
-                    reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                    emissivity_ratio = mfr.helium_emissivity_PFSD2012(self._emis_lines[w], temp, dens)
+                    a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
+                    optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
+                    reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
 
                     flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) *
                             10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_He_at_wave / EW_Hb) * (h[w]))
@@ -215,10 +215,8 @@ class MCMCgal:
                 # reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
-                Pg_to_Hb_flux = emissivity_ratio * (
-                            (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
-                                ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(
-                            reddening_function * c_Hb)
+                Pg_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
+                                ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(reddening_function * c_Hb)
 
                 # Theoretical F(HeI10830)/F(Hbeta) ratio
                 line_species = 'helium'
