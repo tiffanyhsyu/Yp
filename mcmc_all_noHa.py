@@ -376,7 +376,8 @@ if __name__ == '__main__':
     # Set which galaxy to run
     # rungal = 'AOS2015'
     # rungal = 'test'
-    rungal = 'ours'
+    # rungal = 'ours'
+    rungal = 'J1044p6306'
 
     if rungal == 'AOS2015':
         # First, remove the file containing old output
@@ -429,7 +430,7 @@ if __name__ == '__main__':
         print('The following galaxies failed:\n' + '\n'.join(galfail))
 
     else:
-        if rungal in names or rungal == 'test':
+        if rungal in AOS2015 or rungal in ours or rungal == 'test':
             MCMCgal(rungal)
         else:
             print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
