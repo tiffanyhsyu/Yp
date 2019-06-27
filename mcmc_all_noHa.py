@@ -114,7 +114,7 @@ class MCMCgal:
                     emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                     a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
                     collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp, method='A2002')
-                    reddening_function = (mfr.f_lambda_avg_interp(emis_lines[w]) / f_lambda_at_Hbeta) - 1.
+                    reddening_function = (mfr.f_lambda_avg_interp(self._emis_lines[w]) / f_lambda_at_Hbeta) - 1.
 
                     #            flux = emissivity_ratio * ( ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EWs[w] + a_H_at_wave)/(EWs[w]) ) ) * \
                     #                ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
