@@ -321,7 +321,10 @@ if __name__ == '__main__':
              'SBS1415+437No2', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583', 'Mrk71No1', 'SBS1152+579', 'Mrk59',
              'SBS1135+581', 'Mrk450No1']
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
-
+    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0140p2951', 'J0214m0835', 'J0220p2044A',
+            'J0220p2044B', 'J0452m0541', 'J0743p4807', 'J0757p4750', 'J0943p3326', 'J1044p6306', 'J1204p5259',
+            'J1214p1245', 'J1322p5425', 'J1414m0208', 'J1425p4441', 'J1655p6337', 'J1705p3527', 'J1732p4452', 'J1757p6454',
+            'J2030m1343', 'J2213p1722', 'J2319p1616', 'J2230m0531', 'J2339p3230', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97', 'LeoP']
     # Set which galaxy to run
     #rungal = 'AOS2015'
     #rungal = 'test'
