@@ -14,8 +14,8 @@ class MCMCgal:
 
         #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
-        galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
-        #galdict = galaxy.load_ours(self.galaxyname)
+        #galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
+        galdict = galaxy.load_ours(self.galaxyname)
 
         self._full_tbl = galdict['full_tbl']
         self._T_OIII = galdict['T_OIII']
@@ -117,7 +117,7 @@ class MCMCgal:
                 flux = (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
                         10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
 
-            # Any HeI line besides the blended HeI+H8 line (HeI at 3890.151)
+            # Any HeI line besides the blended HeI+H8 line or the NIR HeI10830 line
             elif nearest_wave in self._helium_lines and nearest_wave != 3890.151 and nearest_wave != 10833.306:
                 line_species = 'helium'
 
@@ -157,7 +157,7 @@ class MCMCgal:
 #                collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
 #                collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
 
-                flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
+                flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
                          10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
 
             # Infrared HeI10830 line
@@ -325,8 +325,8 @@ if __name__ == '__main__':
     # Set which galaxy to run
     #rungal = 'AOS2015'
     #rungal = 'test'
-    #rungal = 'ours'
-    rungal = 'synthetic'
+    rungal = 'ours'
+    #rungal = 'synthetic'
     #rungal = 'SBS0940+5442'
 
 
