@@ -398,7 +398,7 @@ if __name__ == '__main__':
         print('The following galaxies failed:\n' + '\n'.join(synfail))
 
     else:
-        if rungal in names or rungal == 'test':
+        if rungal in AOS2015 or rungal == 'test':
             MCMCgal(rungal)
         else:
             print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
