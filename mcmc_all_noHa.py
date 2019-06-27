@@ -136,7 +136,7 @@ class MCMCgal:
                     collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, 6564.612, temp, method='A2002')
                     reddening_function = (mfr.f_lambda_avg_interp(6564.612) / f_lambda_at_Hbeta) - 1.
 
-                    EW_Ha = full_tbl['EW'][np.where(full_tbl['Wavelength'] == 6564.612)[0][0]]
+                    EW_Ha = self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 6564.612)[0][0]]
                     Ha_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                     10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Ha + a_H_at_wave) / (EW_Ha))
 
@@ -190,12 +190,11 @@ class MCMCgal:
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
                 # C/R scaling for H8 from Hg already done in the function
-                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp,
-                                                                               method='A2002')
+                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp, method='A2002')
                 #                collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
                 #                collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
 
-                flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
+                flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
                          10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - (
                                     (a_H_at_wave / EW_Hb) * (h[w]))
 
@@ -204,14 +203,11 @@ class MCMCgal:
                 # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
                 line_species = 'hydrogen'
 
-                emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp,
-                                                                 dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
                 # C/R scaling for Pg from Pb already done in the function
-                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._hydrogen_lines[0], temp,
-                                                                               method='A2002')
-                reddening_function = (mfr.f_lambda_avg_interp(self._hydrogen_lines[
-                                                                  0]) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
+                collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._hydrogen_lines[0], temp, method='A2002')
+                reddening_function = (mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.
                 # reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
@@ -229,8 +225,7 @@ class MCMCgal:
 
                 # The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
                 # theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
-                HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (
-                            1 / (1 + collisional_to_recomb_Hbeta)) * \
+                HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) *
                                        10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - (
                                                   (a_He_at_wave / EW_Hb) * (h[w] * Pg_to_Hb_flux))
 
