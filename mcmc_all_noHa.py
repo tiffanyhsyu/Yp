@@ -283,7 +283,7 @@ class MCMCgal:
                          np.random.uniform(self._min_log_xi, self._max_log_xi)]) for i in range(nwalkers)]
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self, args=(self._x, self._y, self._y_error), threads=ndim)
 
-        print('Running MCMC...')
+        print('Running MCMC on', self.galaxyname, '...')
         nmbr = 1000
         a = time.time()
         for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
