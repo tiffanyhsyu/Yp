@@ -373,8 +373,7 @@ if __name__ == '__main__':
     # Set which galaxy to run
     # rungal = 'AOS2015'
     # rungal = 'test'
-    rungal = 'ours'
-    # rungal = 'KJ2'
+    rungal = 'J0214m0835'
 
     if rungal == 'AOS2015':
         # First, remove the file containing old output

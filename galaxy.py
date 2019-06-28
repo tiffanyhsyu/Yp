@@ -269,6 +269,10 @@ def load_ours(galaxyname):
         gname = 'J0201p0919'
         T_OIII = 14672.599263221606
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'J0214m0835':
+        gname = 'J0214m0835'
+        T_OIII = 17046.256263241805
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
     elif galaxyname == 'J0220p2044A':
         gname = 'J0220p2044A'
         T_OIII = 15798.807188110046
