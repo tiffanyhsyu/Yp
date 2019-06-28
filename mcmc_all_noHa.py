@@ -370,7 +370,7 @@ if __name__ == '__main__':
     # rungal = 'AOS2015'
     # rungal = 'test'
     # rungal = 'ours'
-    rungal = 'J1044p6306'
+    rungal = 'J0943p3326'
 
     if rungal == 'AOS2015':
         # First, remove the file containing old output
