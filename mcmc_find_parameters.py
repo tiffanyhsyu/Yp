@@ -1,6 +1,7 @@
 ###########
 # Updates #
 ###########
+# 2019-07-12: largely not used anymore -- should use 'mcmc_all.py' instead
 # 2019-03-28: clean up/update for optical+NIR
 # 2019-02-25: bug fix to reading in emis_lines
 # 2019-02-19: update to input flux table format
@@ -25,7 +26,7 @@ from astropy.table import Table
 from matplotlib.ticker import MaxNLocator
 
 # Read in measured data (wavelength, flux ratios, and EWs)
-full_tbl = Table.read(os.getcwd()+'/test_output_flux', format='ascii', delimiter=' ')
+full_tbl = Table.read(os.getcwd()+'/test_data/no_HaHb/J0018p2345', format='ascii', delimiter=' ')
 # NIR
 #flux_ratios = full_tbl[:-1] # Ignore the last entry, assumed to be for P-gamma, for MCMC
 # Optical
@@ -238,7 +239,7 @@ print('Done!')
 print((time.time() - a) / 60.0, 'mins')
 
 print('Saving samples')
-np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('test_no_nir_4026_7067', nwalkers, nmbr), sampler.chain)
+np.save('{0:s}_{1:d}walkers_{2:d}steps'.format('J0018p2345_no_nir', nwalkers, nmbr), sampler.chain)
 
 print('Making plots')
 burnin = int(0.8 * nmbr)
