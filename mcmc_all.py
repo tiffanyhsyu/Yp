@@ -15,6 +15,7 @@ class MCMCgal:
         #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
         #galdict = galaxy.load_synthetic(self.galaxyname) # synthetic runs
+        #galdict = galaxy.load_ours_noHaHb(self.galaxyname)
         galdict = galaxy.load_ours(self.galaxyname)
 
         self._full_tbl = galdict['full_tbl']
