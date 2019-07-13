@@ -25,6 +25,7 @@ class MCMCgal:
         self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
         #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
 
+        print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
         # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
@@ -329,7 +330,7 @@ if __name__ == '__main__':
     # Set which galaxy to run
     #rungal = 'AOS2015'
     #rungal = 'test'
-    rungal = 'ours'
+    rungal = 'LeoP'
     #rungal = 'synthetic'
     #rungal = 'SBS0940+5442'
 
@@ -387,7 +388,7 @@ if __name__ == '__main__':
         for syn in synthetic_runs:
             try:
                 MCMCgal(syn)
-                except IOError:
+            except IOError:
                 print('ERROR :: The following galaxy data could not be found: {0:s}'.format(syn))
                 synfail += [syn]
             except TypeError:
@@ -399,7 +400,7 @@ if __name__ == '__main__':
         print('The following galaxies failed:\n' + '\n'.join(synfail))
 
     else:
-        if rungal in AOS2015 or rungal == 'test':
+        if rungal in AOS2015 or rungal in ours or rungal == 'test':
             MCMCgal(rungal)
         else:
             print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
