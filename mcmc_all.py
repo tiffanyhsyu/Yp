@@ -23,7 +23,8 @@ class MCMCgal:
         self._T_OIII = galdict['T_OIII']
 
         # Read in measured data (wavelength, flux ratios, and EWs)
-        self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
+        #self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
+        self._flux_ratios = self._full_tbl # Use full table for only optical systems..!
         #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
 
         print (self._flux_ratios)
@@ -282,8 +283,8 @@ class MCMCgal:
         print ('tau_He', tau_He_mcmc)
         # print ('n_HI', n_HI_mcmc)
         print ('log(xi)', log_xi_mcmc)
-        print ('\n Input parameter values:')
-        print (input_vals)
+        #print ('\n Input parameter values:')
+        #print (input_vals)
 
         dens = 10.0 ** (samples[:, 2])
         v = np.percentile(dens, [16, 50, 84])
@@ -352,7 +353,7 @@ if __name__ == '__main__':
     # Set which galaxy to run
     #rungal = 'AOS2015'
     #rungal = 'test'
-    rungal = 'LeoP'
+    rungal = 'spec-0266-51630-0407'
     #rungal = 'synthetic'
 
     # First, remove 'all_output' file containing old output, if it exists
