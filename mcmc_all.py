@@ -353,7 +353,8 @@ if __name__ == '__main__':
     # Set which galaxy to run
     #rungal = 'AOS2015'
     #rungal = 'test'
-    rungal = 'spec-0266-51630-0407'
+    #rungal = 'spec-0266-51630-0407'
+    rungal = 'SDSS'
     #rungal = 'synthetic'
 
     # First, remove 'all_output' file containing old output, if it exists
