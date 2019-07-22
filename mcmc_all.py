@@ -14,21 +14,23 @@ class MCMCgal:
 
         #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
         #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
-        galdict = galaxy.load_HeBCD_NIR(self.galaxyname) # All HeBCD systems w/optical+NIR
+        #galdict = galaxy.load_HeBCD_NIR(self.galaxyname) # All HeBCD systems w/optical+NIR
         #galdict = galaxy.load_ours(self.galaxyname) # Our LRIS sample
         #galdict = galaxy.load_ours_noHaHb(self.galaxyname) # Our LRIS sample assuming no Ha/Hb
-        #galdict = galaxy.load_SDSS(self.galaxyname) # SDSS galaxies
+        galdict = galaxy.load_SDSS(self.galaxyname) # SDSS galaxies
         #galdict = galaxy.load_synthetic(self.galaxyname) # Erik's synthetic runs
 
-        self._flux_ratios = galdict['full_tbl']
+        self._full_tbl = galdict['full_tbl']
         self._T_OIII = galdict['T_OIII']
 
         # Read in measured data (wavelength, flux ratios, and EWs)
         #self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
-        #self._flux_ratios = self._full_tbl # Use full table for only optical systems..!
-        #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
-
-        #print (self._flux_ratios)
+        self._flux_ratios = self._full_tbl # Use full table for only optical systems..!
+        #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or
+        #### something like that! This idea as is still has Pg as something it wants to model...maybe elif self._emis_lines[w] == 10941.082, then model_flux[w] = 1.? and
+        #### need to make sure that the Pg entry is always 1.0?
+        #### Maybe try to see if 10941.082 in self._full_tbl['Wavelengths']) and if so, self._flux_ratio = Table.remove_row with Pg, and else self._flux_ratios = self._full_tbl?
+        print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
         # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
@@ -38,8 +40,7 @@ class MCMCgal:
 
         self._allowed_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:]  # [1:] to remove the duplicate ~3890 wavelength
 
-        # Wavelengths we care about for MCMC, based on what is given in the input flux file (concatenating self._hydrogen_lines and self._helium_lines means some emlines could be mistakenly modeled even though they are not measured
-        # Not sorting anymore because input could potentially not be in increasing Wavelength, and want to make sure we grab the right EW, Flux Ratios for the corresponding Wavelength
+        # Wavelengths we care about for MCMC, based on what is given in the input flux file (old method of concatenating self._hydrogen_lines and self._helium_lines means some emlines could be mistakenly modeled even though they are not measured; also not sorting by numerical order anymore because input could potentially not be in increasing Wavelength, and want to make sure we grab the right EW, Flux Ratios for the corresponding Wavelength
         self._emis_lines = self._flux_ratios['Wavelength']
 
         # Measured data from spectra
@@ -177,7 +178,7 @@ class MCMCgal:
                 reddening_function = (mfr.f_lambda_avg_interp(self._hydrogen_lines[0]) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 #reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
-                EW_Pg = self._flux_ratios[np.where(self._flux_ratios['Wavelength'] == 10941.082)[0][0]]['EW']
+                EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
                 Pg_to_Hb_flux = emissivity_ratio *  ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                 ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(reddening_function * c_Hb)
 
@@ -581,10 +582,12 @@ if __name__ == '__main__':
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
     # Set which galaxy to run
     #rungal = 'AOS2015'
-    #rungal = 'test'
-    #rungal = 'spec-0266-51630-0407'
-    rungal = 'SDSS'
+    #rungal = 'HeBCD'
+    rungal = 'spec-4454-55536-0235'
+    #rungal = 'ours
+    #rungal = 'SDSS'
     #rungal = 'synthetic'
+    #rungal = 'test'
 
     # First, remove 'all_output' file containing old output, if it exists
     if os.path.exists('all_output'):
