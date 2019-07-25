@@ -691,6 +691,10 @@ def load_SDSS(galaxyname):
         gname = 'spec-0304-51609-0034'
         T_OIII = 13324.863162352554
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+#        elif galaxyname == 'spec-0364-52000-0384':
+#        gname = 'spec-0364-52000-0384'
+#        T_OIII = nan
+#        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
     elif galaxyname == 'spec-0380-51792-0253':
         gname = 'spec-0380-51792-0253'
         T_OIII = 9442.50295571747
