@@ -798,7 +798,7 @@ def optical_depth_function(wave, temp, dens, tau):
         else:
             print ('No expression for optical depth at this wavelength')
     # HeI7067 requires a different functional form, given in BSS2002 Section 3.2, paragraph 4 (before Eq. 5)
-    elif idx == 9: # 9th index corresponds to the row in Table helium_optial_depth that HeI7067 is in
+    elif idx == 9: # 9th index corresponds to the row in Table helium_optical_depth that HeI7067 is in
         f_tau = 1 + ((tau/2) * (0.359 + ((-3.46e-2 - (1.84e-4 * dens) + (3.039e-7 * dens ** 2)) * T4)))
     # HeI10833 optical depth formulation is introducedin AOS2015, Eq. 2.2; I added it into the helium_optical_depth table for consistency in idx retrieval
     elif idx == 11: # 11th index corresponds to the row in Table helium_optical_depth that HeI10833 is in
@@ -1324,17 +1324,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
     dens = 10**log_dens
     xi = 10**log_xi
 
-    #### *****************
-    #### Eventually remove these if statements because we need C/R for both S2018 and HS1987 hydrogen emissivities
-    #### *****************
-    if hydrogen_method == 'S2018':
-        #### Testing S2018 emissivities *PLUS* C/R...
-        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp, method='A2002')
-        ####
-        #collisional_to_recomb_Hbeta = 0.
-    elif hydrogen_method == 'HS1987':
-        collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp, method='A2002')
-
+    collisional_to_recomb_Hbeta = hydrogen_collision_to_recomb(xi, hydrogen_lines[2], temp, method='A2002')
     f_lambda_at_Hbeta = f_lambda_avg_interp(hydrogen_lines[2])
 
     for w in range(len(waves)):
