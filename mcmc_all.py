@@ -30,6 +30,7 @@ class MCMCgal:
         #### something like that! This idea as is still has Pg as something it wants to model...maybe elif self._emis_lines[w] == 10941.082, then model_flux[w] = 1.? and
         #### need to make sure that the Pg entry is always 1.0?
         #### Maybe try to see if 10941.082 in self._full_tbl['Wavelengths']) and if so, self._flux_ratio = Table.remove_row with Pg, and else self._flux_ratios = self._full_tbl?
+        #### Maybe have __init__ take in galaxyname *and* optical/NIR? and have that defined below with each galaxy set 'AOS2015', 'SDSS', 'ours', etc.?
         print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
         # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
