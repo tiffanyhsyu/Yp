@@ -12,25 +12,20 @@ class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
 
-        #galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
-        #galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
-        #galdict = galaxy.load_HeBCD_NIR(self.galaxyname) # All HeBCD systems w/optical+NIR
+        #galdict = galaxy.load_HeBCD(self.galaxyname) # All HeBCD systems (incl. AOS2015) w/optical+NIR
         #galdict = galaxy.load_ours(self.galaxyname) # Our LRIS sample
-        #galdict = galaxy.load_ours_noHaHb(self.galaxyname) # Our LRIS sample assuming no Ha/Hb
-        galdict = galaxy.load_SDSS(self.galaxyname) # SDSS galaxies
+        #galdict = galaxy.load_SDSS(self.galaxyname) # SDSS galaxies
         #galdict = galaxy.load_synthetic(self.galaxyname) # Erik's synthetic runs
-
+        galdict = galaxy.load_test(self.galaxyname)
         self._full_tbl = galdict['full_tbl']
         self._T_OIII = galdict['T_OIII']
 
         # Read in measured data (wavelength, flux ratios, and EWs)
-        #self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
-        self._flux_ratios = self._full_tbl # Use full table for only optical systems..!
-        #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or
-        #### something like that! This idea as is still has Pg as something it wants to model...maybe elif self._emis_lines[w] == 10941.082, then model_flux[w] = 1.? and
-        #### need to make sure that the Pg entry is always 1.0?
-        #### Maybe try to see if 10941.082 in self._full_tbl['Wavelengths']) and if so, self._flux_ratio = Table.remove_row with Pg, and else self._flux_ratios = self._full_tbl?
-        #### Maybe have __init__ take in galaxyname *and* optical/NIR? and have that defined below with each galaxy set 'AOS2015', 'SDSS', 'ours', etc.?
+        if 10833.306 in self._full_tbl['Wavelength']:
+            self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
+        else:
+            self._flux_ratios = self._full_tbl
+
         print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
         # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
@@ -48,10 +43,13 @@ class MCMCgal:
         self._EWs_meas = np.array(self._flux_ratios['EW'])
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
+
         try:
             self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+            #self._y_error =  np.sqrt(np.array(self._flux_ratios['Flux Ratio Errors'])**2. + (0.02*np.array(self._flux_ratios['Flux Ratio']))**2. )
         except:
-            self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
+            self._y_error = np.sqrt(np.array(self._flux_ratios['Flux Ratio'] * 0.002)**2. + np.array(self._flux_ratios['Flux Ratio'] * 0.02)**2.)
+
         self._x = np.zeros(self._y.size)
 
         # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -324,14 +322,10 @@ class MCMCgal:
 
 if __name__ == '__main__':
     # The allowed names
-    AOS2015 = ['IZw18SE1', 'SBS0335-052E1', 'SBS0335-052E3', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'SBS1415+437No13',
-             'SBS1415+437No2', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583', 'Mrk71No1', 'SBS1152+579', 'Mrk59',
-             'SBS1135+581', 'Mrk450No1']
-    HeBCD = ['HS0837+4717' 'Mrk162' 'Mrk36' 'Mrk930' 'Mrk1315' 'Mrk1329' 'SBS1222+614' 'SBS1437+370' 'UM311']
-    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0140p2951', 'J0214m0835', 'J0220p2044A',
-            'J0220p2044B', 'J0452m0541', 'J0743p4807', 'J0757p4750', 'J0943p3326', 'J1044p6306', 'J1204p5259',
-            'J1214p1245', 'J1322p5425', 'J1414m0208', 'J1425p4441', 'J1655p6337', 'J1705p3527', 'J1732p4452', 'J1757p6454',
-            'J2030m1343', 'J2213p1722', 'J2319p1616', 'J2230m0531', 'J2339p3230', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97', 'LeoP']
+    HeBCD = ['IZw18SE1', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583',
+             'Mrk71No1', 'SBS1152+579', 'Mrk59', 'SBS1135+581', 'Mrk450No1', 'HS0837+4717', 'Mrk162', 'Mrk36',
+             'Mrk930', 'Mrk1315', 'Mrk1329', 'SBS1222+614', 'SBS1437+370', 'UM311']
+    ours = ['LeoP', ''J1044p6306', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97'] # objects w/full spectrum
     SDSS = ['spec-0266-51630-0407', 'spec-0284-51943-0408', 'spec-0283-51959-0572', 'spec-0284-51943-0007', 'spec-0278-51900-0392',
             'spec-0299-51671-0083', 'spec-0299-51671-0311', 'spec-0289-51990-0369', 'spec-0285-51930-0154', 'spec-0267-51608-0421',
             'spec-0279-51984-0293', 'spec-0279-51984-0520', 'spec-0301-51942-0531', 'spec-0327-52294-0042', 'spec-0287-52023-0230',
@@ -582,13 +576,12 @@ if __name__ == '__main__':
             'spec-3851-55302-0325', 'spec-4075-55352-0777', 'spec-4871-55928-0299', 'spec-6290-56238-0843']
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
     # Set which galaxy to run
-    #rungal = 'AOS2015'
     #rungal = 'HeBCD'
-    rungal = 'spec-4454-55536-0235'
-    #rungal = 'ours
+    #rungal = 'spec-4454-55536-0235'
+    #rungal = 'ours'
     #rungal = 'SDSS'
     #rungal = 'synthetic'
-    #rungal = 'test'
+    rungal = 'test'
 
     # First, remove 'all_output' file containing old output, if it exists
     if os.path.exists('all_output'):
@@ -598,24 +591,6 @@ if __name__ == '__main__':
     outfile.write(
         'Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n')
     outfile.close()
-
-    if rungal == 'AOS2015':
-        # Run MCMC on all 'qualifying' AOS2015 galaxies
-        galfail = []
-        for gal in AOS2015:
-            try:
-                print ('Working on', gal)
-                MCMCgal(gal)
-            except IOError:
-                print('ERROR :: The following galaxy data could not be found: {0:s}'.format(gal))
-                galfail += [gal]
-            except TypeError:
-                print('ERROR :: The following galaxy is not known: {0:s}'.format(gal))
-                galfail += [gal]
-            except ValueError:
-                print('ERROR :: The following galaxy failed: {0:s}'.format(gal))
-                galfail += [gal]
-        print('The following galaxies failed:\n' + '\n'.join(galfail))
 
     if rungal == 'HeBCD':
         # Run MCMC on all HeBCD galaxies w/optical+NIR, and not in AOS2015
@@ -689,7 +664,7 @@ if __name__ == '__main__':
         print('The following galaxies failed:\n' + '\n'.join(synfail))
 
     else:
-        if rungal in AOS2015 or rungal in HeBCD or rungal in ours or rungal in SDSS or rungal == 'test':
+        if rungal in HeBCD or rungal in ours or rungal in SDSS or rungal == 'test':
             MCMCgal(rungal)
         else:
             print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
