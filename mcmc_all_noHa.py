@@ -12,17 +12,18 @@ class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
 
-        # galdict = galaxy.load_AOS2015(self.galaxyname) # optical+NIR
-        # galdict = galaxy.load_AOS2012(self.galaxyname) # optical only
-        galdict = galaxy.load_ours(self.galaxyname)
+        galdict = galaxy.load_ours_noHaHb(self.galaxyname) # Our LRIS sample assuming no Ha/Hb
 
         self._full_tbl = galdict['full_tbl']
         self._T_OIII = galdict['T_OIII']
 
         # Read in measured data (wavelength, flux ratios, and EWs)
-        self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
-        #### Might want to remove this [:-1] in the future and instead, in the loop over emission lines, add an elif self._emis_lines[w] == 10941.082: continue, or something like that!
+        if 10833.306 in self._full_tbl['Wavelength']:
+            self._flux_ratios = self._full_tbl[:-1]  # Ignore the entry for P-gamma for MCMC'
+        else:
+            self._flux_ratios = self._full_tbl
 
+        print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
         # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
 
@@ -41,9 +42,12 @@ class MCMCgal:
 
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
         try:
-            self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+#            self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
+            self._y_error =  np.sqrt( np.array(self._flux_ratios['Flux Ratio Errors'])**2. + ( 0.02 * np.array(self._flux_ratios['Flux Ratio']) )**2. )
+
         except:
-            self._y_error = np.array(self._flux_ratios['Flux Ratio'] * 0.002)
+            self._y_error = np.sqrt(np.array(self._flux_ratios['Flux Ratio'] * 0.002) ** 2. + np.array(self._flux_ratios['Flux Ratio'] * 0.02) ** 2.)
+
         self._x = np.zeros(self._y.size)
 
         # Range of values for 8 parameters: y_plus, temp, dens, c_Hb, a_H, a_He, tau_He, xi/n_HI
@@ -358,46 +362,17 @@ class MCMCgal:
 
 if __name__ == '__main__':
     # The allowed names
-    AOS2015 = ['IZw18SE1', 'SBS0335-052E1', 'SBS0335-052E3', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'SBS1415+437No13',
-               'SBS1415+437No2', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583', 'Mrk71No1', 'SBS1152+579', 'Mrk59',
-               'SBS1135+581', 'Mrk450No1']
-    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0140p2951', 'J0214m0835', 'J0220p2044A',
-            'J0220p2044B', 'J0452m0541', 'J0743p4807', 'J0757p4750', 'J0943p3326', 'J1044p6306', 'J1204p5259',
-            'J1214p1245', 'J1322p5425', 'J1414m0208', 'J1425p4441', 'J1655p6337', 'J1705p3527', 'J1732p4452', 'J1757p6454',
-            'J2030m1343', 'J2213p1722', 'J2319p1616', 'J2230m0531', 'J2339p3230', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97']
-
+    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0220p2044A', 'J0452m0541', 'J0743p4807',
+            'J0757p4750', 'J0943p3326', 'J1044p6306', 'J1204p5259', 'J1214p1245', 'J1322p5425', 'J1425p4441',
+            'J1655p6337', 'J1705p3527', 'J1732p4452', 'J1757p6454', 'J2030m1343', 'J2213p1722', 'J2319p1616',
+            'J2230m0531', 'J2339p3230', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97']
+    # Removed ['J0140p2951', 'J0214m0835', 'J0220p2044B', 'J1414m0208'] for too many missing lines; Leo P is in mcmc_all.py
 
     # Set which galaxy to run
-    # rungal = 'AOS2015'
-    # rungal = 'test'
-    rungal = 'J1757p6454'
+    #rungal = 'test'
+    rungal = 'ours'
 
-    if rungal == 'AOS2015':
-        # First, remove the file containing old output
-        if os.path.exists('all_output'):
-            os.remove('all_output')
-        outfile = open('all_output', 'w')
-        outfile.write(
-            'Object y+ y+_p y+_m dens dens_p dens_m aHe aHe_p aHe_m tauHe tauHe_p tauHe_m temp temp_p temp_m cHb cHb_p cHb_m aH aH_p aH_m xi xi_p xi_m\n')
-        outfile.close()
-        # Run MCMC on all galaxies
-        galfail = []
-        for gal in AOS2015:
-            try:
-                print ('Working on', gal)
-                MCMCgal(gal)
-            except IOError:
-                print('ERROR :: The following galaxy data could not be found: {0:s}'.format(gal))
-                galfail += [gal]
-            except TypeError:
-                print('ERROR :: The following galaxy is not known: {0:s}'.format(gal))
-                galfail += [gal]
-            except ValueError:
-                print('ERROR :: The following galaxy failed: {0:s}'.format(gal))
-                galfail += [gal]
-        print('The following galaxies failed:\n' + '\n'.join(galfail))
-
-    elif rungal == 'ours':
+    if rungal == 'ours':
         # First, remove the file containing old output
         if os.path.exists('all_output'):
             os.remove('all_output')
@@ -423,7 +398,7 @@ if __name__ == '__main__':
         print('The following galaxies failed:\n' + '\n'.join(galfail))
 
     else:
-        if rungal in AOS2015 or rungal in ours or rungal == 'test':
+        if rungal in ours or rungal == 'test':
             MCMCgal(rungal)
         else:
             print('Invalid Galaxy name. Select one of the following:\n' + '\n'.join(names))
