@@ -2,21 +2,14 @@
 
 yMCMC is a code that solves for the best fit parameters that describe an emission line spectrum, given their
  hydrogen and helium flux ratios. There are 8 parameters yMCMC solves for:
--- y+, singly ionized helium abundance
-
--- T_e, the electron temperature [K]
-
--- log10(n_e), the electron density [cm^-3]
-
--- c(Hb), the reddening parameter
-
--- a_H, the amount of underlying hydrogen stellar absorption [A], relative to the amount at Hb
-
--- a_He, the amount of underlying helium stellar absorption [A], relative to the amount at HeI 4026
-
--- tau_He, the helium optical depth parameter, normalized to the value at HeI 3889
-
--- log10(xi), ratio of neutral to singly ionized hydrogen densities
+- y+, singly ionized helium abundance
+- T_e, the electron temperature [K]
+- log10(n_e), the electron density [cm^-3]
+- c(Hb), the reddening parameter
+- a_H, the amount of underlying hydrogen stellar absorption [A], relative to the amount at Hb
+- a_He, the amount of underlying helium stellar absorption [A], relative to the amount at HeI 4026
+- tau_He, the helium optical depth parameter, normalized to the value at HeI 3889
+- log10(xi), ratio of neutral to singly ionized hydrogen densities
 
 
 yMCMC steps through this parameter space, predicts the would-be emission line flux ratios given the parameters, and
@@ -39,7 +32,7 @@ for examples. Note that there is a +/-3 Angstrom tolerance on the wavelengths li
 
 2. In the galaxy.py file, create a new function that will read in the input file(s) you have from Step 1. For a
 galaxy sample named 'galsamp' with two systems named 'galaxy1' and 'galaxy2', the function would look like:
-
+```
     def load_galsamp(galaxyname):
         outdict = dict()
         dir = '/test_data/galsamp/'
@@ -57,7 +50,7 @@ galaxy sample named 'galsamp' with two systems named 'galaxy1' and 'galaxy2', th
         outdict['full_tbl'] = full_tbl
         outdict['T_OIII'] = T_OIII
         return outdict
-
+```
 The number of if statements must match the number of systems in your sample. Here, 'gname' refers to the name of the
 input file created in Step 1 for your galaxy. Make sure that these input files are placed in the '/test_data/galsamp'
 folder, or that you edit the path in the directory line to match where the files are stored. 'T_OIII' is the
@@ -65,17 +58,17 @@ temperature prior for that galaxy, which the user should measure via the direct 
 
 3. Go to mcmc_all.py and edit the following line (near the top of the file, Line ~14) such that the function
 created in Step 2 is called on:
-
+```
     galdict = galaxy.load_galsamp(self.galaxyname)
-
+```
 4. Also in mcmc_all.py, towards the middle (Line ~320), add the names of your galaxies in galsamp to a new list:
-
+```
     galsamp = ['galaxy1', 'galaxy2']
-
+```
 Directly under the lists, add/change the following line to read in your new list:
-
+```
     rungal = 'galsamp'
-
+```
 5. Also in mcmc_all.py, ~10 lines below Step 4, add your galaxy sample to the series of if statements:
 ```
     elif rungal == 'galsamp':
