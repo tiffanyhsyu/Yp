@@ -6,7 +6,6 @@ import model_flux_ratio as mfr
 import galaxy
 import pdb
 
-
 # Allowed galaxy names:
 class MCMCgal:
     def __init__(self, galaxyname):
@@ -25,16 +24,11 @@ class MCMCgal:
 
         print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
-        # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
-
-        # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
         self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 
         self._allowed_lines = np.sort(np.concatenate((self._hydrogen_lines, self._helium_lines)))[1:]  # [1:] to remove the duplicate ~3890 wavelength
 
-        # Wavelengths we care about for MCMC, based on what is given in the input flux file (concatenating self._hydrogen_lines and self._helium_lines means some emlines could be mistakenly modeled even though they are not measured
-        # Not sorting anymore because input could potentially not be in increasing Wavelength, and want to make sure we grab the right EW, Flux Ratios for the corresponding Wavelength
         self._emis_lines = self._flux_ratios['Wavelength']
 
         # Measured data from spectra
@@ -58,7 +52,6 @@ class MCMCgal:
         self._min_a_H, self._max_a_H = 0, 10  # underlying stellar H absorption (Angstroms)
         self._min_a_He, self._max_a_He = 0, 4  # underlying stellar HeI absorption (Angstroms)
         self._min_tau_He, self._max_tau_He = 0, 5  # optical depth; range of values from Izotov & Thuan 2010
-        # min_n_HI, max_n_HI = 1e-4, 1e-1  # neutral hydrogen density (cm^-3)
         self._min_log_xi, self._max_log_xi = -6, -0.0969  # equals to xi=0-0.8; ratio of neutral hydrogen to singly ionized hydrogen densities; xi = n(HI)/n(HII)
         self.mcmc_steps()
 
@@ -67,7 +60,6 @@ class MCMCgal:
 
     # Set up MCMC
     def get_model(self, theta):
-        #    y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, n_HI = theta
         y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi = theta
 
         # Reparameterize density and neutral hydrogen input
@@ -86,9 +78,6 @@ class MCMCgal:
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
         h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
-        #        EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
-        #        EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
-        #        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
         model_flux = np.zeros(self._y.size)  # emission lines we want to model
@@ -193,10 +182,7 @@ class MCMCgal:
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
-                # C/R scaling for H8 from Hg already done in the function
                 collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp, method='A2002')
-                #                collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
-                #                collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
 
                 flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
                          10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - (
@@ -209,10 +195,8 @@ class MCMCgal:
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
-                # C/R scaling for Pg from Pb already done in the function
                 collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._hydrogen_lines[0], temp, method='A2002')
                 reddening_function = (mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.
-                # reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
                 EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
                 Pg_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
@@ -307,10 +291,8 @@ class MCMCgal:
         prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{H}$', '$a_{He}$', '$\\tau_{He}',
                    '$log(\\xi)$']
         input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -2])  # Input parameters for fake spectra
-        # input_vals = np.array([0.08634, 12979, 1.987, 0.15, 2.31, 0.37, 2.27, -1.767]) # AOS 2015's solved parameters for Mrk450 No.1
 
         print ('Best parameter values:')
-        # y_plus_mcmc, temp_mcmc, dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, n_HI_mcmc = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
         y_plus_mcmc, temp_mcmc, log_dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, log_xi_mcmc = map(
             lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 

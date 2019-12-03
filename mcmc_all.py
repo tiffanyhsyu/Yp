@@ -6,7 +6,6 @@ import model_flux_ratio as mfr
 import galaxy
 import pdb
 
-
 # Allowed galaxy names:
 class MCMCgal:
     def __init__(self, galaxyname):
@@ -28,9 +27,6 @@ class MCMCgal:
 
         print (self._flux_ratios)
         # Names of wavelenghts of interest for MCMC
-        # self._y_names = ['HeI+H83890', 'HeI4027', 'Hd', 'Hg', 'HeI4472', 'Hb', 'HeI5017', 'HeI5877', 'Ha', 'HeI6679', 'HeI7067', 'HeI10830']
-
-        # Balmer and Helium lines of interest for MCMC
         self._hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166])  # Pa-g, Ha, Hb, Hg, Hd, H8
         self._helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
 
@@ -46,7 +42,6 @@ class MCMCgal:
 
         try:
             self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
-            #self._y_error =  np.sqrt(np.array(self._flux_ratios['Flux Ratio Errors'])**2. + (0.02*np.array(self._flux_ratios['Flux Ratio']))**2. )
         except:
             self._y_error = np.sqrt(np.array(self._flux_ratios['Flux Ratio'] * 0.002)**2. + np.array(self._flux_ratios['Flux Ratio'] * 0.02)**2.)
 
@@ -86,9 +81,6 @@ class MCMCgal:
 
         # Continuum level ratio; Eq. 2.4 of AOS2012
         h = self._y * EW_Hb / self._EWs_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
-#        EW_meas = np.random.normal(self._EWs_meas, self._flux_ratios['EW Errors'])
-#        EW_Hb = EW_meas[np.where(self._flux_ratios['Wavelength'] == 4862.721)[0]]
-#        h = self._y * EW_Hb / EW_meas  # relative to H-beta; i.e., h(lambda) / h(Hbeta)
 
         # Model flux
         model_flux = np.zeros(self._y.size)  # emission lines we want to model
@@ -157,11 +149,7 @@ class MCMCgal:
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(self._emis_lines[w], temp, dens)
                 a_H_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_H, ion=line_species)
-                # C/R scaling for H8 from Hg already done in the function
                 collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._emis_lines[w], temp, method='A2002')
-#                collisional_to_recomb_factor = np.exp(( -13.6 * ((1/5**2)-(1/8**2)) ) / (8.6173303e-5 * temp)) # scale factor for going from C/R(Hg) to C/R(H8)
-#                collisional_to_recomb_ratio = collisional_to_recomb_factor * mfr.hydrogen_collision_to_recomb(xi, 4341.684, temp) # Calculate C/R(Hg) and multiply by above scale factor
-
                 flux += (emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) *
                          10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ((a_H_at_wave / EW_Hb) * (h[w]))
 
@@ -172,7 +160,6 @@ class MCMCgal:
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = mfr.stellar_absorption(10941.082, a_H, ion=line_species)
-                # C/R scaling for Pg from Pb already done in the function
                 collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._hydrogen_lines[0], temp, method='A2002')
                 reddening_function = (mfr.f_lambda_avg_interp(self._hydrogen_lines[0]) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 #reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
@@ -192,7 +179,7 @@ class MCMCgal:
 
                 # The way h is defined above and given the format of the input fluxes gives ( F(HeI10830)/F(Pg) ) * ( EW(Hb) / EW(HeI10830) ) here; must be multiplied by the calculated
                 # theoretical F(Pg)/F(Hb) ratio from above to get the HeI10830 to Hbeta continuum level ratio, which is the definition of h, from Eq. 2.4 of AOS2012
-                HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) * \
+                HeI10830_to_Hb_flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) *
                                        10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb))) - ( (a_He_at_wave / EW_Hb) * (h[w] * Pg_to_Hb_flux) )
 
                 # Want to get theoretical F(HeI10830)/F(Pg) to match that in the input table of flux_ratios -- can do this by ( F(HeI10830)/F(Hbeta) ) / ( F(Hbeta)/F(Pg) )!
@@ -208,7 +195,6 @@ class MCMCgal:
 
     # Define the probability function as likelihood * prior.
     def lnprior(self, theta):
-        #    y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, n_HI = theta
         y_plus, temp, log_dens, c_Hb, a_H, a_He, tau_He, log_xi = theta
 
         if self._min_y_plus <= y_plus <= self._max_y_plus and \
@@ -245,7 +231,6 @@ class MCMCgal:
                          np.random.uniform(self._min_a_H, self._max_a_H),
                          np.random.uniform(self._min_a_He, self._max_a_He),
                          np.random.uniform(self._min_tau_He, self._max_tau_He),
-                         # np.random.uniform(min_n_HI, max_n_HI),
                          np.random.uniform(self._min_log_xi, self._max_log_xi)]) for i in range(nwalkers)]
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self, args=(self._x, self._y, self._y_error), threads=ndim)
 
@@ -267,11 +252,9 @@ class MCMCgal:
         samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
         # Names of 8 parameters and input 'true' parameter values
         prenams = ['y+', 'temperature', '$log(n_{e})$', 'c(H\\beta)', '$a_{H}$', '$a_{He}$', '$\\tau_{He}', '$log(\\xi)$']
-        input_vals = np.array([0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -2])  # Input parameters for fake spectra
-        # input_vals = np.array([0.08634, 12979, 1.987, 0.15, 2.31, 0.37, 2.27, -1.767]) # AOS 2015's solved parameters for Mrk450 No.1
+
 
         print ('Best parameter values:')
-        # y_plus_mcmc, temp_mcmc, dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, n_HI_mcmc = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
         y_plus_mcmc, temp_mcmc, log_dens_mcmc, c_Hb_mcmc, a_H_mcmc, a_He_mcmc, tau_He_mcmc, log_xi_mcmc = map(
             lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 
@@ -282,10 +265,7 @@ class MCMCgal:
         print ('a_H', a_H_mcmc)
         print ('a_He', a_He_mcmc)
         print ('tau_He', tau_He_mcmc)
-        # print ('n_HI', n_HI_mcmc)
         print ('log(xi)', log_xi_mcmc)
-        #print ('\n Input parameter values:')
-        #print (input_vals)
 
         dens = 10.0 ** (samples[:, 2])
         v = np.percentile(dens, [16, 50, 84])
@@ -325,7 +305,7 @@ if __name__ == '__main__':
     HeBCD = ['IZw18SE1', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583',
              'Mrk71No1', 'SBS1152+579', 'Mrk59', 'SBS1135+581', 'Mrk450No1', 'HS0837+4717', 'Mrk162', 'Mrk36',
              'Mrk930', 'Mrk1315', 'Mrk1329', 'SBS1222+614', 'SBS1437+370', 'UM311']
-    ours = ['LeoP', ''J1044p6306', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97'] # objects w/full spectrum
+    ours = ['LeoP']
     SDSS = ['spec-0266-51630-0407', 'spec-0284-51943-0408', 'spec-0283-51959-0572', 'spec-0284-51943-0007', 'spec-0278-51900-0392',
             'spec-0299-51671-0083', 'spec-0299-51671-0311', 'spec-0289-51990-0369', 'spec-0285-51930-0154', 'spec-0267-51608-0421',
             'spec-0279-51984-0293', 'spec-0279-51984-0520', 'spec-0301-51942-0531', 'spec-0327-52294-0042', 'spec-0287-52023-0230',
@@ -576,11 +556,7 @@ if __name__ == '__main__':
             'spec-3851-55302-0325', 'spec-4075-55352-0777', 'spec-4871-55928-0299', 'spec-6290-56238-0843']
     synthetic_runs = ['synthetic1', 'synthetic2', 'synthetic3', 'synthetic4', 'synthetic5', 'synthetic6', 'synthetic7', 'synthetic8']
     # Set which galaxy to run
-    #rungal = 'HeBCD'
-    #rungal = 'spec-4454-55536-0235'
-    #rungal = 'ours'
-    #rungal = 'SDSS'
-    #rungal = 'synthetic'
+    #rungal = 'HeBCD' # 'ours' # 'SDSS' # 'synthetic' # 'spec-4454-55536-0235' #
     rungal = 'test'
 
     # First, remove 'all_output' file containing old output, if it exists
