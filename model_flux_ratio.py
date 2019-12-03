@@ -1,7 +1,7 @@
-######
-# Yp #
-######
-# Code to model the flux ratio of an emission line, given 8 input parameters:
+#########
+# yMCMC #
+#########
+# Code to model the flux ratio of an emission line, given 8 parameters:
 ## y+, helium abundance
 ## T, temperature
 ## n_e, density
@@ -41,7 +41,7 @@
 #############
 # Test Flux #
 #############
-#mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
+# mfr.generate_emission_line_ratio('test_output_flux', [3890.166, 4027.328, 4102.891, 4341.684, 4472.755, 4862.721, 5017.079, 5877.299, 6564.612, 6679.994, 7067.198, 10833.306], [10, 10, 75, 100, 10, 250, 5, 10, 350, 10, 5, 200], 250, 0.08, 18000, 2, 0.1, 1.0, 1.0, 1.0, -4, EW_Pg=50.)
 
 # Imports
 import os
@@ -50,8 +50,11 @@ import numpy as np
 import scipy.interpolate as interp
 from functools import reduce
 from astropy.table import Table
-import pdb as debugger
 
+
+##########
+# Tables #
+##########
 # Load in tables we'll need
 path = os.getcwd()
 
@@ -65,7 +68,7 @@ hydrogen_CR_coeff = Table.read(path+'/tables/hydrogen_CR_coeff', format='ascii',
 helium_CR_coeff = Table.read(path+'/tables/helium_CR_coeff', format='ascii', delimiter='\t')
 
 # Vacuum wavelengths of Balmer lines Ha, Hb, Hg, Hd, H8 for MCMC
-hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166, 18756.096, 12821.578, 40522.79]) #last 3 are Pa, Pb, Br-a (4-3, 5-3, 5-4)
+hydrogen_lines = np.array([10941.082, 6564.612, 4862.721, 4341.684, 4102.891, 3890.166, 18756.096, 12821.578, 40522.79]) #last 3 lines are Pa, Pb, Br-a (4-3, 5-3, 5-4)
 
 # Vacuum wavelengths of Helium lines for MCMC
 helium_lines = np.array([10833.306, 7067.198, 6679.994, 5877.299, 5017.079, 4472.755, 4027.328, 3890.151])
@@ -89,36 +92,37 @@ pg_RBS = np.zeros((21,6)) # Paschen-gamma, 6-->3
 
 bra_RBS = np.zeros((21,6)) # Brackett-alpha, 5-->4
 
+# Find corresponding data in hydrogen emissivity table for each emission line
 for t in range(len(np.arange(5000, 26000, 1000))):
-    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+    hb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+    hg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hd_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+    hd_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
+    h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pa_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+    pa_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+    pb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
+    pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    bra_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
-                                                          np.where(hydrogen_emis['Nl'] == 4)[0], \
+    bra_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
+                                                          np.where(hydrogen_emis['Nl'] == 4)[0],
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
 
-# Linear
+# Linear interpolation on the hydrogen emissivities
 S2018_ha_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=1, ky=1)
 S2018_hb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=1, ky=1)
 S2018_hg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=1, ky=1)
@@ -128,7 +132,7 @@ S2018_pa_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arang
 S2018_pb_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pb_RBS, kx=1, ky=1)
 S2018_pg_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), pg_RBS, kx=1, ky=1)
 S2018_bra_lin = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), bra_RBS, kx=1, ky=1)
-# Cubic
+# Cubic interpolation on the hydrogen emissivities
 S2018_ha_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), ha_RBS, kx=3, ky=3)
 S2018_hb_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hb_RBS, kx=3, ky=3)
 S2018_hg_cubic = interp.RectBivariateSpline(np.arange(5000, 26000, 1000), np.arange(0,6), hg_RBS, kx=3, ky=3)
@@ -230,8 +234,13 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear', ratio=True):
         print ('Not ready for this degree of interpolation!')
         pdb.set_trace()
 
+    # Return the emissivity of the emission line relative to Hb (default),
+    # or just the emissivity
     if ratio is True:
         Xt = Xt[0] / Hbeta_emis[0]
+
+    else:
+        Xt = Xt[0] # just the emissivity of the emission line
 
     return Xt
 
@@ -300,7 +309,7 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 # Interpolated PFSD 2012/2013 erratum HeI emissivities; T=5000-25000, log(n_e)=1-14
 #### These are *not* interpolated on a log(n_e) scale!
 #### Currently not being used -- using fine mesh HeI emissivities below instead
-# Linear
+# Linear interpolation on the helium emissivities
 #HeI3889_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=1, ky=1)
 #HeI4026_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=1, ky=1)
 #HeI4471_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=1, ky=1)
@@ -309,7 +318,7 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 #HeI6678_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['6678A'].reshape((14, 21)), kx=1, ky=1)
 #HeI7065_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['7065A'].reshape((14, 21)), kx=1, ky=1)
 #HeI10833_lin = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['10830A'].reshape((14, 21)), kx=1, ky=1)
-# Cubic
+# Cubic interpolation on the helium emissivities
 #HeI3889_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['3889A'].reshape((14, 21)), kx=3, ky=3)
 #HeI4026_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4026A'].reshape((14, 21)), kx=3, ky=3)
 #HeI4471_cubic = interp.RectBivariateSpline(np.logspace(1, 14, num=14), np.linspace(5e3, 25e3, num=21), helium_emis['4471A'].reshape((14, 21)), kx=3, ky=3)
@@ -322,7 +331,7 @@ def hydrogen_emissivity_HS1987(wave, temp, dens):
 # Interpolated Porter HeI emissivities on finer mesh, from AOPS 2013; T=10000-22000, log(n_e)=0-4
 dens_finemesh = np.array(np.unique(helium_finemesh_emis['log n_e']))
 temp_finemesh = np.arange(10000, 22250, step=250)
-# Linear
+# Linear interpolation on the helium emissivities
 HeI3889_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['3889A'].reshape((31, 49)), kx=1, ky=1)
 HeI4026_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4026A'].reshape((31, 49)), kx=1, ky=1)
 HeI4471_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4471A'].reshape((31, 49)), kx=1, ky=1)
@@ -331,7 +340,7 @@ HeI5876_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, 
 HeI6678_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['6678A'].reshape((31, 49)), kx=1, ky=1)
 HeI7065_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['7065A'].reshape((31, 49)), kx=1, ky=1)
 HeI10833_finemesh_lin = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['10830A'].reshape((31, 49)), kx=1, ky=1)
-# Cubic
+# Cubic interpolation on the helium emissivities
 HeI3889_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['3889A'].reshape((31, 49)), kx=3, ky=3)
 HeI4026_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4026A'].reshape((31, 49)), kx=3, ky=3)
 HeI4471_finemesh_cubic = interp.RectBivariateSpline(dens_finemesh, temp_finemesh, helium_finemesh_emis['4471A'].reshape((31, 49)), kx=3, ky=3)
@@ -877,7 +886,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
         options include
         AOS2010:
             - collision strength: Anderson et al. 2002
-            - branching ratio: ????
+            - branching ratio: Omidvar 1983
             - recombination rate: Hummer & Storey 1987
         R2015:
             - collision strength: Chianti database
@@ -885,7 +894,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
         A2002:
             - collision strength: Anderson et al. 2002
             - branching ratio: Omidvar 1983
-            - recombination rate: Hummer & Storey 1987
+            - recombination rate: calculated from Peter Storey's 'S18' hydrogen emissivities
     Returns
     -------
     hydrogen_CR : float
@@ -944,7 +953,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             # This would be the scaling from recomb_42 to Pgamma
             # scale = np.array([9.87e-2, 9.39e-2, 9.04e-2, 8.77e-2, 8.56e-2, 8.23e-2, 7.79e-2])
             # But instead we use Pbeta recombination scaling, branching ratio, collision strengths, then apply an Energy difference scaling factor to Pgamma
-            scale = np.array([1.84e-1, 1.72e-1, 1.63e-1, 1.57e-1, 1.52e-1, 1.45e-1, 1.36e-1])
+            #scale = np.array([1.84e-1, 1.72e-1, 1.63e-1, 1.57e-1, 1.52e-1, 1.45e-1, 1.36e-1])
             i = np.array([5, 5, 5, 5, 5])
             # Pbeta: 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
             # 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
@@ -960,7 +969,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
                                        ( hc / (hydrogen_lines[8]*1e-10))])[:, None]
         elif idx == 1:  # Halpha
             # Recombination rate scaling factors from Hummer & Storey 1987
-            scale = np.array([3.04, 2.93, 2.86, 2.82, 2.79, 2.75, 2.70])
+            #scale = np.array([3.04, 2.93, 2.86, 2.82, 2.79, 2.75, 2.70])
             i = np.array([3, 3, 3, 4, 4, 4, 4])
             # Collision strengths from Table 1 of Anderson et al. 2002, interpolated to be at our temperature
             # Halpha: 1-->3s, 1-->3p, 1-->3d, 1-->4s, 1-->4p, 1-->4d, 1-->4f
@@ -977,7 +986,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             photon_energy = np.ones(emiss_transitions.shape)
             photon_energy *= np.array([hc / (hydrogen_lines[1]*1e-10)]) # 1e-10 converts Angstrom to meters
         elif idx == 2:  # Hbeta
-            scale = np.array([1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00])
+            #scale = np.array([1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00])
             i = np.array([4, 4, 4, 4, 5, 5, 5, 5, 5])
             # Hbeta: 1-->4s, 1-->4p, 1-->4d, 1-->4f, 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
             # 1-->7, 1-->8, 1-->9, 1-->10, 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
@@ -995,7 +1004,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
             photon_energy *= np.array([( hc / (hydrogen_lines[2]*1e-10)),
                                        ( hc / (hydrogen_lines[6]*1e-10))])[:, None]
         elif idx == 3:  # Hgamma
-            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            #scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
             i = np.array([5, 5, 5, 5, 5])
             # Hgamma: 1-->5s, 1-->5p, 1-->5d, 1-->5f 1-->5g
             # 1-->11, 1-->12, 1-->13, 1-->14, 1-->15
@@ -1014,7 +1023,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
                                        ( hc / (hydrogen_lines[3]*1e-10))])[:, None]
         elif idx == 4:  # Hdelta
             #scale = np.array([2.51e-1, 2.56e-1, 2.59e-1, 2.61e-1, 2.62e-1, 2.64e-1, 2.66e-1]) # This scales recomb_42 to Hdelta, but since we are applying an Ediff_factor from Hg to Hd, we don't need this
-            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            #scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
             i = np.array([5, 5, 5, 5, 5])
             Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 6 ** 2))) / (kB * temp))  # Energy difference b/t Hg and Hd
             upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
@@ -1030,7 +1039,7 @@ def hydrogen_collision_to_recomb(xi, wave, temp, method='AOS2010'):
                                        ( hc / (hydrogen_lines[3]*1e-10))])[:, None]
         elif idx == 5:  # H8
             #scale = np.array([1.02e-1, 1.04e-1, 1.05e-1, 1.06e-1, 1.06e-1, 1.07e-1, 1.08e-1]) # This scales recomb_42 to H8, but since we are applying an Ediff_factor from Hg to Hd, we don't need this
-            scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
+            #scale = np.array([4.58e-1, 4.65e-1, 4.68e-01, 4.71e-1, 4.73e-1, 4.75e-1, 4.78e-1])
             i = np.array([5, 5, 5, 5, 5])
             Ediff_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (kB * temp))  # Energy difference b/t Hg and H8
             upsilon = np.array([np.array([np.polyval(upsilon_5s1s_coeff, np.log10(temp)), np.polyval(upsilon_5p1s_coeff, np.log10(temp)),
@@ -1339,9 +1348,7 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
 
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
-                #### Testing S2018 emissivities *PLUS* C/R...
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='A2002')
-                ####
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='A2002') # HS1987 does not include C/R
@@ -1368,10 +1375,6 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
         
         # The blended HeI+H8 line
         elif nearest_wave == 3890.151 or nearest_wave == 3890.166:
-            # Calculate fractional contribution of HeI and H8 to the blended line
-#            frac_of_he = ( (y[0] * ( (EWs[w] + a_H_at_wave) / EWs[w]) ) - ( 0.104 * (temp/1e4)**0.046 * 10**-(reddening_function * c_Hb) ) ) / y[0]
-#            EW_HeI = frac_of_he * EWs[w]
-#            EW_H8 = (1-frac_of_he) * EWs[w]
             # For purposes of generating fake fluxes, assume fractional contribution of HeI vs H8 to the blended line is 50/50
             frac_of_he = 0.5
             EW_HeI = frac_of_he * EWs[w]
@@ -1395,17 +1398,9 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
 
             if hydrogen_method == 'S2018':
                 emissivity_ratio = hydrogen_emissivity_S2018(waves[w], temp, dens)
-                ####
-                #collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
-                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='A2002') # Calculate C/R(Hg) and multiply by above scale factor
-                # C/R(H8) now implemented into this function
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='A2002')
-                ####
             elif hydrogen_method == 'HS1987':
                 emissivity_ratio = hydrogen_emissivity_HS1987(waves[w], temp, dens)
-                #collisional_to_recomb_factor = np.exp((-13.6 * ((1 / 5 ** 2) - (1 / 8 ** 2))) / (8.6173303e-5 * temp))  # scale factor for C/R(Hg) to C/R(H8)
-                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='A2002') # Calculate C/R(Hg) and multiply by above scale factor
-                # C/R(H8) now implemented into this function
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, waves[w], temp, method='A2002')
             a_H_at_wave = stellar_absorption(waves[w], a_H, ion=line_species)
 
@@ -1426,23 +1421,11 @@ def generate_emission_line_ratio(filename, waves, EWs, EW_Hb, y_plus, temp, log_
                 emissivity_ratio = hydrogen_emissivity_S2018(10941.082, temp, dens) # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 a_H_at_wave = stellar_absorption(10941.082, a_H, ion=line_species)
                 reddening_function = ( f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta ) - 1. # hard-coded Pg wavelength; could also be hydrogen_lines[0]
-
-                #### Testing S2018 emissivities *PLUS* C/R
-                #collisional_to_recomb_factor = np.exp( ( -13.6 * (-19/150) ) / ( 8.6173303e-5 * temp ) )  # scale factor for C/R(Hg) to C/R(Pg); -19/150 is from (1/5**2 - 1/2**2) - (1/6**2 - 1/3**2)
-                #collisional_to_recomb_ratio = collisional_to_recomb_factor * hydrogen_collision_to_recomb(xi, 4341.684, temp, method='A2002') # Calculate C/R(Hg) and multiply by above scale factor
-                # C/R(Pg) now implemented into this function
                 collisional_to_recomb_ratio = hydrogen_collision_to_recomb(xi, 10940.082, temp, method='A2002')
 
                 Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
                                 ( (1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta) ) * \
                                 10**-(reddening_function * c_Hb)
-                #### 
-
-                # Must use S2018 for Pg emissivity so no collisional_to_recomb_ratio in flux equation
-                #Pg_to_Hb_flux = emissivity_ratio * ( (EW_Hb + a_H)/(EW_Hb) ) / ( (EW_Pg + a_H_at_wave)/(EW_Pg) ) * \
-                #                ( 1 / (1 + collisional_to_recomb_Hbeta) ) * \
-                #                10**-(reddening_function * c_Hb)
-
 
                 # Now, theoretical F(HeI10830)/F(Hbeta) ratio
                 line_species = 'helium'
