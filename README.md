@@ -19,9 +19,8 @@ The following are instructions on how to set up and run yMCMC on your emission l
 the user to have existing measurements of the emission line flux ratios and equivalent widths (EW) of as many of the
 following hydrogen and helium emission line ratios as possible:
 
--- Hydrogen: H8, H-delta, H-gamma, H-beta, H-alpha, H-alpha, P-gamma
-
--- Helium: HeI3889, HeI4026, HeI4472, HeI5016, HeI5876, HeI6678, HeI7065, HeI10830
+- Hydrogen: H8, H-delta, H-gamma, H-beta, H-alpha, H-alpha, P-gamma
+- Helium: HeI3889, HeI4026, HeI4472, HeI5016, HeI5876, HeI6678, HeI7065, HeI10830
 
 1. Create an input file per system that lists the wavelength, flux ratio, flux ratio error, EW, EW error for the
 measured emission line ratios. The flux ratios need to be normalized to the value at H-beta for optical lines,
@@ -38,11 +37,11 @@ galaxy sample named 'galsamp' with two systems named 'galaxy1' and 'galaxy2', th
         dir = '/test_data/galsamp/'
         if galaxyname == 'galaxy1':
             gname = 'gal1_input'
-            T_OIII = 16500.
+            T_OIII = 10000.
             full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
         elif galaxyname == 'galaxy2':
             gname = 'gal2_input'
-            T_OIII = 16500.
+            T_OIII = 10000.
             full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
         else:
             print('Galaxy not known: {0:s}'.format(galaxyname))
@@ -55,6 +54,7 @@ The number of if statements must match the number of systems in your sample. Her
 input file created in Step 1 for your galaxy. Make sure that these input files are placed in the '/test_data/galsamp'
 folder, or that you edit the path in the directory line to match where the files are stored. 'T_OIII' is the
 temperature prior for that galaxy, which the user should measure via the direct method and using the [OIII] lines.
+The values 10000. given here are placeholders.
 
 3. Go to mcmc_all.py and edit the following line (near the top of the file, Line ~14) such that the function
 created in Step 2 is called on:
