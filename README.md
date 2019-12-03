@@ -1,4 +1,4 @@
-#yMCMC
+# yMCMC
 
 yMCMC is a code that solves for the best fit parameters that describe an emission line spectrum, given their
  hydrogen and helium flux ratios. There are 8 parameters yMCMC solves for:
@@ -27,6 +27,7 @@ the user to have existing measurements of the emission line flux ratios and equi
 following hydrogen and helium emission line ratios as possible:
 
 -- Hydrogen: H8, H-delta, H-gamma, H-beta, H-alpha, H-alpha, P-gamma
+
 -- Helium: HeI3889, HeI4026, HeI4472, HeI5016, HeI5876, HeI6678, HeI7065, HeI10830
 
 1. Create an input file per system that lists the wavelength, flux ratio, flux ratio error, EW, EW error for the
@@ -76,7 +77,7 @@ Directly under the lists, add/change the following line to read in your new list
     rungal = 'galsamp'
 
 5. Also in mcmc_all.py, ~10 lines below Step 4, add your galaxy sample to the series of if statements:
-
+```
     elif rungal == 'galsamp':
         # Run MCMC on our galaxy sample
         galfail = []
@@ -94,6 +95,6 @@ Directly under the lists, add/change the following line to read in your new list
                 print('ERROR :: The following galaxy failed: {0:s}'.format(gal))
                 galfail += [gal]
         print('The following galaxies failed:\n' + '\n'.join(galfail))
-
+```
 6. Once these additions/changes are made, you can run mcmc_all.py. The MCMC by default uses 500 walkers, each
 taking 1000 steps. The MCMC chains will be saved in files ending with '_500walkers_1000steps.npy'.
