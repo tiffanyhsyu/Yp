@@ -3,13 +3,21 @@
 yMCMC is a code that solves for the best fit parameters that describe an emission line spectrum, given their
  hydrogen and helium flux ratios. There are 8 parameters yMCMC solves for:
 -- y+, singly ionized helium abundance
+
 -- T_e, the electron temperature [K]
+
 -- log10(n_e), the electron density [cm^-3]
+
 -- c(Hb), the reddening parameter
+
 -- a_H, the amount of underlying hydrogen stellar absorption [A], relative to the amount at Hb
+
 -- a_He, the amount of underlying helium stellar absorption [A], relative to the amount at HeI 4026
+
 -- tau_He, the helium optical depth parameter, normalized to the value at HeI 3889
+
 -- log10(xi), ratio of neutral to singly ionized hydrogen densities
+
 
 yMCMC steps through this parameter space, predicts the would-be emission line flux ratios given the parameters, and
 calculates the log-likelihood function of the model.
