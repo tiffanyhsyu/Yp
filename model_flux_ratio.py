@@ -94,32 +94,32 @@ bra_RBS = np.zeros((21,6)) # Brackett-alpha, 5-->4
 
 # Find corresponding data in hydrogen emissivity table for each emission line
 for t in range(len(np.arange(5000, 26000, 1000))):
-    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
+    ha_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 3)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
+    hb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
+    hg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    hd_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
+    hd_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 2)[0],
+    h8_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 8)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 2)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pa_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
+    pa_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 4)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
+    pb_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 3)[0],
+    pg_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 6)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 3)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
-    bra_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0],
-                                                          np.where(hydrogen_emis['Nl'] == 4)[0],
+    bra_RBS[t] = hydrogen_emis['emissivity'][reduce(np.intersect1d, (np.where(hydrogen_emis['Nu'] == 5)[0], \
+                                                          np.where(hydrogen_emis['Nl'] == 4)[0], \
                                                           np.where(hydrogen_emis['T'] == np.arange(5000, 26000, 1000)[t])))]
 
 # Linear interpolation on the hydrogen emissivities
@@ -234,13 +234,8 @@ def hydrogen_emissivity_S2018(wave, temp, dens, deg='linear', ratio=True):
         print ('Not ready for this degree of interpolation!')
         pdb.set_trace()
 
-    # Return the emissivity of the emission line relative to Hb (default),
-    # or just the emissivity
     if ratio is True:
         Xt = Xt[0] / Hbeta_emis[0]
-
-    else:
-        Xt = Xt[0] # just the emissivity of the emission line
 
     return Xt
 
