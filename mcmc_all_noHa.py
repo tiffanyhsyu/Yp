@@ -37,7 +37,7 @@ class MCMCgal:
         self._y = np.array(self._flux_ratios['Flux Ratio'])  # F(lambda) / F(H-beta)
         try:
 #            self._y_error = np.array(self._flux_ratios['Flux Ratio Errors'])
-            self._y_error =  np.sqrt( np.array(self._flux_ratios['Flux Ratio Errors'])**2. + ( 0.02 * np.array(self._flux_ratios['Flux Ratio']) )**2. )
+            self._y_error =  np.sqrt( np.array(self._flux_ratios['Flux Ratio Errors'])**2. + ( 0.09 * np.array(self._flux_ratios['Flux Ratio']) )**2. )
 
         except:
             self._y_error = np.sqrt(np.array(self._flux_ratios['Flux Ratio'] * 0.002) ** 2. + np.array(self._flux_ratios['Flux Ratio'] * 0.02) ** 2.)
@@ -121,7 +121,7 @@ class MCMCgal:
 
                 # Separate -- if HeI line is on 'red' side, need a HeI/Ha ratio
                 if nearest_wave >= 5877.299:
-                    # First, theoretical F(Halpha)/F(Hbeta) ratio
+                    # First, theoretical F(Halpha)/F(Hbeta) ratio (e.g., Eq. 2.3 of AOS11)
                     line_species = 'hydrogen'
 
                     emissivity_ratio = mfr.hydrogen_emissivity_S2018(6564.612, temp, dens)
@@ -129,7 +129,17 @@ class MCMCgal:
                     collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, 6564.612, temp, method='A2002')
                     reddening_function = (mfr.f_lambda_avg_interp(6564.612) / f_lambda_at_Hbeta) - 1.
 
-                    EW_Ha = self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 6564.612)[0][0]]
+                    # EW_Ha = self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 6564.612)[0][0]]
+                    # Take into account error on EW(Ha) by perturbing EW(Ha) by its measured EW error
+                    try:
+                        EW_Ha = np.random.normal(
+                            self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 6564.612)[0]][0],
+                            self._flux_ratios['EW Errors'][np.where(self._flux_ratios['Wavelength'] == 6564.612)[0]][0])
+                    except:
+                        EW_Ha = np.random.normal(
+                            self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 6564.612)[0]][0],
+                            0.1 * self._flux_ratios['EW'][np.where(self._flux_ratios['Wavelength'] == 6564.612)[0]][0])
+
                     Ha_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                     10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Ha + a_H_at_wave) / (EW_Ha))
 
@@ -190,7 +200,7 @@ class MCMCgal:
 
             # Infrared HeI10830 line
             elif nearest_wave == 10833.306:
-                # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio'
+                # Theoretical F(Pg)/F(Hb) ratio, aka the 'model-dependent scaling ratio' (e.g., Eq. 2.3 of AOS11)
                 line_species = 'hydrogen'
 
                 emissivity_ratio = mfr.hydrogen_emissivity_S2018(10941.082, temp, dens)  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
@@ -198,7 +208,17 @@ class MCMCgal:
                 collisional_to_recomb_ratio = mfr.hydrogen_collision_to_recomb(xi, self._hydrogen_lines[0], temp, method='A2002')
                 reddening_function = (mfr.f_lambda_avg_interp(10941.082) / f_lambda_at_Hbeta) - 1.
 
-                EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+                #EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+                # Take into account error on EW(Pg) by perturbing EW(Pg) by its measured EW error
+                try:
+                    EW_Pg = np.random.normal(
+                        self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0],
+                        self._full_tbl['EW Errors'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0])
+                except:
+                    EW_Pg = np.random.normal(
+                        self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0],
+                        0.1 * self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0])
+
                 Pg_to_Hb_flux = emissivity_ratio * ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                 ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(reddening_function * c_Hb)
 
@@ -272,7 +292,7 @@ class MCMCgal:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self, args=(self._x, self._y, self._y_error), threads=ndim)
 
         print('Running MCMC on', self.galaxyname, '...')
-        nmbr = 1000
+        nmbr = 1500
         a = time.time()
         for i, result in enumerate(sampler.run_mcmc(pos, nmbr, rstate0=np.random.get_state())):
             if True:  # (i+1) % 100 == 0:
@@ -344,15 +364,16 @@ class MCMCgal:
 
 if __name__ == '__main__':
     # The allowed names
-    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0220p2044A', 'J0452m0541', 'J0743p4807',
-            'J0757p4750', 'J0943p3326', 'J1044p6306', 'J1204p5259', 'J1214p1245', 'J1322p5425', 'J1425p4441',
-            'J1655p6337', 'J1705p3527', 'J1732p4452', 'J1757p6454', 'J2030m1343', 'J2213p1722', 'J2319p1616',
+    ours = ['J0000p3052A', 'J0000p3052B', 'J0018p2345', 'J0118p3512', 'J0220p2044A',
+             'J0452m0541', 'J0743p4807', 'J0757p4750', 'J0943p3326', 'J1044p6306',
+             'J1204p5259', 'J1214p1245', 'J1322p5425', 'J1425p4441', 'J1655p6337',
+             'J1705p3527', 'J1732p4452', 'J1757p6454', 'J2030m1343', 'J2213p1722', 'J2319p1616',
             'J2230m0531', 'J2339p3230', 'KJ2', 'KJ29', 'KJ5', 'KJ5B', 'KJ97']
     # Removed ['J0140p2951', 'J0214m0835', 'J0220p2044B', 'J1414m0208'] for too many missing lines; Leo P is in mcmc_all.py
-
+    # J1214p1245, J1425p4441, J1757p6454, J2339p3230 have EW(Hb) < 50
     # Set which galaxy to run
-    #rungal = 'test'
-    rungal = 'ours'
+    rungal = 'test'
+    #rungal = 'ours'
 
     if rungal == 'ours':
         # First, remove the file containing old output

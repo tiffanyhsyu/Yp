@@ -196,7 +196,7 @@ def load_HeBCD(galaxyname):
         gname = 'CGCG007025No2'
         T_OIII = 16500.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
-    if galaxyname == 'HS0837+4717':
+    elif galaxyname == 'HS0837+4717':
         gname = 'HS0837+4717'
         T_OIII = 19400.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
@@ -275,6 +275,294 @@ def load_HeBCD(galaxyname):
     elif galaxyname == 'UM311':
         gname = 'UM311'
         T_OIII = 9700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'CGCG007025No1':
+        gname = 'CGCG007025No1'
+        T_OIII = 16400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk35':
+        gname = 'Mrk35'
+        T_OIII = 10200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0029+1748':
+        gname = 'HS0029+1748'
+        T_OIII = 12800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0111+2115':
+        gname = 'HS0111+2115'
+        T_OIII = 11100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0122+0743':
+        gname = 'HS0122+0743'
+        T_OIII = 17600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0128+2832':
+        gname = 'HS0128+2832'
+        T_OIII = 12500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0134+3415':
+        gname = 'HS0134+3415'
+        T_OIII = 16400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0735+3512':
+        gname = 'HS0735+3512'
+        T_OIII = 12000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0811+4913':
+        gname = 'HS0811+4913'
+        T_OIII = 14400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS0924+3821':
+        gname = 'HS0924+3821'
+        T_OIII = 12500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS1028+3843':
+        gname = 'HS1028+3843'
+        T_OIII = 15800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS1213+3636A':
+        gname = 'HS1213+3636A'
+        T_OIII = 10700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS1214+3801':
+        gname = 'HS1214+3801'
+        T_OIII = 13400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS1311+3628':
+        gname = 'HS1311+3628'
+        T_OIII = 11400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS1442+4250':
+        gname = 'HS1442+4250'
+        T_OIII = 17700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS2236+1344':
+        gname = 'HS2236+1344'
+        T_OIII = 21000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'HS2359+1659':
+        gname = 'HS2359+1659'
+        T_OIII = 11900.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'IZw18SE2':
+        gname = 'IZw18SE2'
+        T_OIII = 18600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'M101No1':
+        gname = 'M101No1'
+        T_OIII = 13700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'M101No2':
+        gname = 'M101No2'
+        T_OIII = 13800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'M101No3':
+        gname = 'M101No3'
+        T_OIII = 9900.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'M101No4':
+        gname = 'M101No4'
+        T_OIII = 10300.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk1063':
+        gname = 'Mrk1063'
+        T_OIII = 10200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk1271':
+        gname = 'Mrk1271'
+        T_OIII = 14100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk5':
+        gname = 'Mrk5'
+        T_OIII = 12100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk600':
+        gname = 'Mrk600'
+        T_OIII = 15700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk750':
+        gname = 'Mrk750'
+        T_OIII = 12000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk1236':
+        gname = 'Mrk1236'
+        T_OIII = 12200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk450No2':
+        gname = 'Mrk450No2'
+        T_OIII = 12500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk67':
+        gname = 'Mrk67'
+        T_OIII = 13200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk724':
+        gname = 'Mrk724'
+        T_OIII = 13000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'NGC1741':
+        gname = 'NGC1741'
+        T_OIII = 11100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'POX36':
+        gname = 'POX36'
+        T_OIII = 12500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0335052E1':
+        gname = 'SBS0335052E1'
+        T_OIII = 20100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0335052E2':
+        gname = 'SBS0335052E2'
+        T_OIII = 20200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0335052E3':
+        gname = 'SBS0335052E3'
+        T_OIII = 20800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0335052E4':
+        gname = 'SBS0335052E4'
+        T_OIII = 20200.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Mrk71No2':
+        gname = 'Mrk71No2'
+        T_OIII = 14000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0741+535':
+        gname = 'SBS0741+535'
+        T_OIII = 13600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0917+527':
+        gname = 'SBS0917+527'
+        T_OIII = 15100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0926+606':
+        gname = 'SBS0926+606'
+        T_OIII = 13400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0940+5441':
+        gname = 'SBS0940+5441'
+        T_OIII = 20000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0946+558':
+        gname = 'SBS0946+558'
+        T_OIII = 13500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS0948+532':
+        gname = 'SBS0948+532'
+        T_OIII = 12800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1054+365':
+        gname = 'SBS1054+365'
+        T_OIII = 13700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1128+573':
+        gname = 'SBS1128+573'
+        T_OIII = 16800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1159+545':
+        gname = 'SBS1159+545'
+        T_OIII = 18400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1205+557':
+        gname = 'SBS1205+557'
+        T_OIII = 16000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1211+540':
+        gname = 'SBS1211+540'
+        T_OIII = 17900.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1249+493':
+        gname = 'SBS1249+493'
+        T_OIII = 16300.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1319+579A':
+        gname = 'SBS1319+579A'
+        T_OIII = 12900.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1319+579C':
+        gname = 'SBS1319+579C'
+        T_OIII = 11300.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1331+493':
+        gname = 'SBS1331+493'
+        T_OIII = 16600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1415+437No11':
+        gname = 'SBS1415+437No11'
+        T_OIII = 16500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1415+437No2':
+        gname = 'SBS1415+437No2'
+        T_OIII = 15900.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1415+437No12':
+        gname = 'SBS1415+437No12'
+        T_OIII = 17000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1415+437No13':
+        gname = 'SBS1415+437No13'
+        T_OIII = 17000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1420+544':
+        gname = 'SBS1420+544'
+        T_OIII = 17500.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1533+574A':
+        gname = 'SBS1533+574A'
+        T_OIII = 14400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'SBS1533+574B':
+        gname = 'SBS1533+574B'
+        T_OIII = 12600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'Tol1214277':
+        gname = 'Tol1214277'
+        T_OIII = 19700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UGC4483':
+        gname = 'UGC4483'
+        T_OIII = 17000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM133':
+        gname = 'UM133'
+        T_OIII = 16600.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM238':
+        gname = 'UM238'
+        T_OIII = 12400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM396':
+        gname = 'UM396'
+        T_OIII = 11300.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM420':
+        gname = 'UM420'
+        T_OIII = 13800.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM422':
+        gname = 'UM422'
+        T_OIII = 13000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM439':
+        gname = 'UM439'
+        T_OIII = 14000.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM448':
+        gname = 'UM448'
+        T_OIII = 12100.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM461':
+        gname = 'UM461'
+        T_OIII = 16400.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'UM462SW':
+        gname = 'UM462SW'
+        T_OIII = 13700.0
+        full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
+    elif galaxyname == 'VIIZw403':
+        gname = 'VIIZw403'
+        T_OIII = 15400.0
         full_tbl = Table.read(os.getcwd() + dir + gname, format='ascii', delimiter=' ')
     else:
         print('Galaxy not known: {0:s}'.format(galaxyname))

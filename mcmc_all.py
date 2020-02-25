@@ -11,7 +11,7 @@ class MCMCgal:
     def __init__(self, galaxyname):
         self.galaxyname = galaxyname
 
-        #galdict = galaxy.load_HeBCD(self.galaxyname) # All HeBCD systems (incl. AOS2015) w/optical+NIR
+        #galdict = galaxy.load_HeBCD(self.galaxyname) # All HeBCD systems (incl. AOS2015 sample w/optical+NIR)
         #galdict = galaxy.load_ours(self.galaxyname) # Our LRIS sample
         #galdict = galaxy.load_SDSS(self.galaxyname) # SDSS galaxies
         #galdict = galaxy.load_synthetic(self.galaxyname) # Erik's synthetic runs
@@ -141,6 +141,7 @@ class MCMCgal:
                 a_He_at_wave = mfr.stellar_absorption(self._emis_lines[w], a_He, ion=line_species)
                 optical_depth_at_wave = mfr.optical_depth_function(self._emis_lines[w], temp, dens, tau_He)
 
+                # For HeI emissivities, the value of E(lambda)/E(Hbeta) returned includes (1 + C/R(lambda))
                 flux = (y_plus * emissivity_ratio * optical_depth_at_wave * (1 / (1 + collisional_to_recomb_Hbeta)) *
                         10 ** -(reddening_function * c_Hb) * ((EW_Hb + a_H) / EW_Hb)) - ((a_He_at_wave / EW_Hb) * (h[w]))
 
@@ -164,7 +165,15 @@ class MCMCgal:
                 reddening_function = (mfr.f_lambda_avg_interp(self._hydrogen_lines[0]) / f_lambda_at_Hbeta) - 1.  # hard-coded Pg wavelength; could also be hydrogen_lines[0]
                 #reddening_function = ( mfr.reddening_coefficient(self._emis_lines[w]) / AHbeta_Av ) - 1. # CCM 1989 reddening curve
 
-                EW_Pg = self._full_tbl[np.where(self._full_tbl['Wavelength'] == 10941.082)[0][0]]['EW']
+                try:
+                    EW_Pg = np.random.normal(
+                        self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0],
+                        self._full_tbl['EW Errors'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0])
+                except:
+                    EW_Pg = np.random.normal(
+                        self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0],
+                        0.1 * self._full_tbl['EW'][np.where(self._full_tbl['Wavelength'] == 10941.082)[0]][0])
+
                 Pg_to_Hb_flux = emissivity_ratio *  ((1 + collisional_to_recomb_ratio) / (1 + collisional_to_recomb_Hbeta)) * \
                                 ((EW_Hb + a_H) / (EW_Hb)) / ((EW_Pg + a_H_at_wave) / (EW_Pg)) * 10 ** -(reddening_function * c_Hb)
 
@@ -302,9 +311,21 @@ class MCMCgal:
 
 if __name__ == '__main__':
     # The allowed names
+    # Optical+NIR HeBCD
     HeBCD = ['IZw18SE1', 'J0519+0007', 'SBS0940+5442', 'Tol65', 'CGCG007-025No2', 'Mrk209', 'SBS1030+583',
              'Mrk71No1', 'SBS1152+579', 'Mrk59', 'SBS1135+581', 'Mrk450No1', 'HS0837+4717', 'Mrk162', 'Mrk36',
              'Mrk930', 'Mrk1315', 'Mrk1329', 'SBS1222+614', 'SBS1437+370', 'UM311']
+    # Just optical HeBCD
+    #HeBCD = ['CGCG007025No1', 'Mrk35', 'HS0029+1748', 'HS0111+2115', 'HS0122+0743', 'HS0128+2832', 'HS0134+3415',
+    #         'HS0735+3512', 'HS0811+4913', 'HS0924+3821', 'HS1028+3843', 'HS1213+3636A', 'HS1214+3801', 'HS1311+3628',
+    #         'HS1442+4250', 'HS2236+1344', 'HS2359+1659', 'IZw18SE2', 'M101No1', 'M101No2', 'M101No3', 'M101No4',
+    #         'Mrk1063', 'Mrk1271', 'Mrk5', 'Mrk600', 'Mrk750', 'Mrk1236', 'Mrk450No2', 'Mrk67', 'Mrk724', 'NGC1741',
+    #         'POX36', 'SBS0335052E1', 'SBS0335052E2', 'SBS0335052E3', 'SBS0335052E4', 'Mrk71No2', 'SBS0741+535',
+    #         'SBS0917+527', 'SBS0926+606', 'SBS0940+5441', 'SBS0946+558', 'SBS0948+532', 'SBS1054+365', 'SBS1128+573',
+    #         'SBS1159+545', 'SBS1205+557', 'SBS1211+540', 'SBS1249+493', 'SBS1319+579A', 'SBS1319+579C', 'SBS1331+493',
+    #         'SBS1415+437No11', 'SBS1415+437No2', 'SBS1415+437No12', 'SBS1415+437No13', 'SBS1420+544', 'SBS1533+574A',
+    #         'SBS1533+574B', 'Tol1214277', 'UGC4483', 'UM133', 'UM238', 'UM396', 'UM420', 'UM422', 'UM439', 'UM448',
+    #         'UM461', 'UM462SW', 'VIIZw403']
     ours = ['LeoP']
     SDSS = ['spec-0266-51630-0407', 'spec-0284-51943-0408', 'spec-0283-51959-0572', 'spec-0284-51943-0007', 'spec-0278-51900-0392',
             'spec-0299-51671-0083', 'spec-0299-51671-0311', 'spec-0289-51990-0369', 'spec-0285-51930-0154', 'spec-0267-51608-0421',
