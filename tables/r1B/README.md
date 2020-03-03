@@ -1,0 +1,5 @@
+The files in this folder contain Case B hydrogen emissivities provided by Peter Storey via private communication in December 2018. The emissivities are an extension of Storey, P.J., & Sochi, T. 2015, MNRAS, 446, 1864, down to the lowest densities that characterize HII regions, n_e = 1 cm^-3.
+
+There are 21 files herein, one for each electron temeprature from T_e = 5000-25000 K in 1000 K intervals. Each file contains the Case B emissivities between all hydrogen levels up to n=10, at electron densities log(n_e / cm^-3) = 0, 1, 2, 3, 4, 5. The author notes that the emissivities are output to five significant figures to facilitate interpolation but that does not mean they are necessarily correct to five figures.
+
+I thank Peter Storey for calculating and providing these hydrogen emissivities and for granting permission to include these tables as part of yMCMC. On his recommendation, I add the caveat that these are unpublished values and therefore have not been subject to a referee's scrutiny.
