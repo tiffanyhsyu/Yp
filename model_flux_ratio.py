@@ -376,7 +376,7 @@ def helium_emissivity_PFSD2012(wave, temp, dens, deg='linear', ratio='porter'):
     -------
     emissivity : float
         The E(HeI)/E(H-beta) ratio (default).
-        Units of emissivity are in ergs*cm^3*s^-1
+        Units of emissivity are in ergs*cm^-3*s^-1
     '''
     # Find which helium line we are working on
     HeI_lines = np.array([3889, 4026, 4471, 5016, 5876, 6678, 7065, 10833])
@@ -475,7 +475,7 @@ def helium_emissivity_coarse_PFSD2012(wave, temp, dens, deg='linear', ratio='por
     -------
     emissivity : float
         The E(HeI)/E(H-beta) ratio (default).
-        Units of emissivity are in ergs*cm^3*s^-1
+        Units of emissivity are in ergs*cm^-3*s^-1
     '''
     # Find which helium line we are working on
     HeI_lines = np.array([3889, 4026, 4471, 5016, 5876, 6678, 7065, 10833])
@@ -604,7 +604,7 @@ def helium_emissivity_PFM2007(wave, temp):
     -------
     emissivity : float
         The E(HeI)/E(H-beta) ratio (default).
-        Units of emissivity are in ergs*cm^3*s^-1
+        Units of emissivity are in ergs*cm^-3*s^-1
     '''
     # Find the row in Porter's 2007 emissivities corresponding to HeI wavelength of interest
     idx = np.abs(heliumcoeff['Wavelength'] - wave).argmin()
@@ -646,7 +646,7 @@ def helium_emissivity_BSS2007(wave, temp, dens):
     -------
     1/phi : float
         E(HeI)/E(H-beta) * (1+C/R(HeI))
-        Units of emissivity are in ergs*cm^3*s^-1
+        Units of emissivity are in ergs*cm^-3*s^-1
     '''
     # Redefine the temperature (checked with new HeI emis to confirm that temp needs to be in T4)
     T4 = temp / 1e4
